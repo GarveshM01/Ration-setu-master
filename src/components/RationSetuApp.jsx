@@ -141,18 +141,19 @@ import RATION_SETU_LOGO from "../assets/ration-setu-logo.png";
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
-  navy: "#17324D",
-  navyDeep: "#0B2239",
-  bg: "#F7F9FC",
-  cream: "#EEF3F7",
-  green: "#16805C",
-  greenBg: "#E7F5EF",
+  navy: "#182B52",
+  navyDeep: "#101D3B",
+  indigo: "#314A8A",
+  bg: "#F4F6FA",
+  cream: "#E9EEF7",
+  green: "#13795B",
+  greenBg: "#E5F4EE",
   gold: "#D99A2B",
-  goldBg: "#FFF4DD",
-  red: "#C44747",
-  redBg: "#FDECEC",
-  grey: "#64748B",
-  greyLine: "#DCE4EC",
+  goldBg: "#FFF4DC",
+  red: "#B9404A",
+  redBg: "#FCEAED",
+  grey: "#59677F",
+  greyLine: "#D7DFEC",
   white: "#FFFFFF",
 };
 
@@ -778,9 +779,9 @@ function SideNav({ active, onNav, onLogout }) {
   ];
   return (
     <aside className="rs-sidebar">
-      <div className="rs-sidebar-brand"><Logo size={36} /><span className="rs-sidebar-kicker">BENEFICIARY PORTAL</span></div>
+      <div className="rs-sidebar-brand"><Logo size={36} /><span className="rs-sidebar-kicker">STATE PDS SERVICES</span></div>
       <nav className="rs-sidebar-nav" aria-label="Primary navigation">
-        <p className="rs-sidebar-label">Workspace</p>
+        <p className="rs-sidebar-label">Citizen workspace</p>
         {items.map((item) => {
           const Icon = item.icon;
           return <button key={item.key} className={`rs-sidebar-item ${active === item.key ? "is-active" : ""}`} onClick={() => onNav(item.key)}>
@@ -790,7 +791,7 @@ function SideNav({ active, onNav, onLogout }) {
         })}
       </nav>
       <div className="rs-sidebar-bottom">
-        <div className="rs-sidebar-help"><ShieldCheck size={17} /><div><b>Secure access</b><span>Prototype environment</span></div></div>
+        <div className="rs-sidebar-help"><ShieldCheck size={17} /><div><b>Secure access</b><span>Verified beneficiary account</span></div></div>
         <button className="rs-sidebar-logout" onClick={onLogout}><LogOut size={16} /> {t(dict.logout)}</button>
       </div>
     </aside>
@@ -798,10 +799,33 @@ function SideNav({ active, onNav, onLogout }) {
 }
 
 function AppShell({ children, footer, sidebar }) {
+  const { t } = useT();
   return (
     <div className={`rs-shell ${sidebar ? "has-sidebar" : ""}`}>
       {sidebar}
       <div className="rs-shell-main">
+        {sidebar && (
+          <header className="rs-portal-header">
+            <div className="rs-portal-header-title">
+              <span className="rs-portal-breadcrumb">PUBLIC DISTRIBUTION SYSTEM</span>
+              <strong>{t(dict.home)} · Beneficiary services</strong>
+            </div>
+            <div className="rs-portal-header-actions">
+              <span className="rs-service-status"><span className="rs-status-dot" /> Services operational</span>
+              <button className="rs-header-icon" aria-label="Notifications"><Bell size={17} /></button>
+              <div className="rs-header-user"><span className="rs-avatar">S</span><span>Seema Devi</span></div>
+            </div>
+          </header>
+        )}
+        {sidebar && (
+          <nav className="rs-service-nav" aria-label="Service navigation">
+            <span className="rs-service-nav-label">Citizen services</span>
+            <button className="is-current" type="button">Overview</button>
+            <button type="button">Ration card</button>
+            <button type="button">Distribution history</button>
+            <button type="button">Support</button>
+          </nav>
+        )}
         <div className="rs-shell-scroll">{children}</div>
         {footer && <div className="rs-shell-footer">{footer}</div>}
       </div>
@@ -1736,7 +1760,58 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
 /* =========================================================================
    DEALER DASHBOARD
    ========================================================================= */
-function DealerDashboard({ state, dispatch, lang }) {
+function DealerPortalFrame({ children, onLogout }) {
+  const { t } = useT();
+  const links = [
+    { label: "Operations overview", icon: LayoutDashboard, active: true },
+    { label: "Queue management", icon: Users },
+    { label: "Stock & allocation", icon: Package },
+    { label: "Distribution register", icon: ClipboardCheck },
+  ];
+  return (
+    <div className="rs-ops-shell">
+      <aside className="rs-ops-sidebar">
+        <div className="rs-ops-brand"><Logo size={38} /><span>DEALER CONSOLE</span></div>
+        <div className="rs-ops-location"><span className="rs-status-dot" /> FPS-102 <small>Shanti Nagar</small></div>
+        <nav className="rs-ops-nav" aria-label="Dealer navigation">
+          <p>Operations</p>
+          {links.map(({ label, icon: Icon, active }) => (
+            <button key={label} className={active ? "is-active" : ""} type="button">
+              <Icon size={17} /> <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="rs-ops-bottom">
+          <div className="rs-ops-security"><ShieldCheck size={17} /><span><b>Secure session</b><small>Last synced just now</small></span></div>
+          <button type="button" onClick={onLogout}><LogOut size={16} /> {t(dict.logout)}</button>
+        </div>
+      </aside>
+      <main className="rs-ops-main">
+        <header className="rs-ops-header">
+          <div>
+            <span className="rs-portal-breadcrumb">PUBLIC DISTRIBUTION SYSTEM / DEALER</span>
+            <h1>Operations overview</h1>
+          </div>
+          <div className="rs-ops-header-actions">
+            <span className="rs-service-status"><span className="rs-status-dot" /> Live system</span>
+            <button className="rs-header-icon" type="button" aria-label="Notifications"><Bell size={17} /></button>
+            <div className="rs-header-user"><span className="rs-avatar">D</span><span>FPS Operator</span></div>
+          </div>
+        </header>
+        <div className="rs-ops-subnav">
+          <span>Today · 15 September 2026</span>
+          <span className="rs-subnav-divider" />
+          <span>Distribution window 09:00–17:00</span>
+          <span className="rs-subnav-spacer" />
+          <button type="button"><RefreshCw size={13} /> Sync data</button>
+        </div>
+        <div className="rs-ops-content">{children}</div>
+      </main>
+    </div>
+  );
+}
+
+function DealerDashboard({ state, dispatch, lang, onLogout }) {
   const { t } = useT();
   const [verifyId, setVerifyId] = useState("");
   const [verified, setVerified] = useState(null);
@@ -1796,7 +1871,8 @@ function DealerDashboard({ state, dispatch, lang }) {
   };
 
   return (
-    <div style={{ maxWidth: 920, margin: "0 auto", width: "100%" }}>
+    <DealerPortalFrame onLogout={onLogout}>
+    <div className="rs-dashboard-content" style={{ maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 10 }}>
         <Logo size={36} />
         <div style={{ textAlign: "right" }}>
@@ -1932,6 +2008,7 @@ function DealerDashboard({ state, dispatch, lang }) {
         </div>
       </div>
     </div>
+    </DealerPortalFrame>
   );
 }
 
@@ -2115,21 +2192,165 @@ export default function RationSetuApp() {
           outline: 3px solid rgba(22,128,92,0.25);
           outline-offset: 2px;
         }
+
+        /* ===== Government portal presentation ===== */
+        .rs-page {
+          padding: 18px 28px 28px;
+          background: linear-gradient(180deg, #eef2f8 0%, #f8fafc 42%, #eef2f8 100%) !important;
+        }
+        .rs-global-header {
+          width: min(100%, 1280px);
+          min-height: 66px;
+          margin: 0 auto 18px;
+          padding: 10px 16px 10px 18px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          background: ${C.white};
+          border: 1px solid ${C.greyLine};
+          border-radius: 12px;
+          box-shadow: 0 4px 18px rgba(24,43,82,.05);
+        }
+        .rs-global-brand { display: flex; align-items: center; gap: 10px; color: ${C.navy}; }
+        .rs-global-brand p:first-child { letter-spacing: -.02em; }
+        .rs-global-utility { display: flex; align-items: center; gap: 18px; }
+        .rs-global-status, .rs-service-status {
+          display: inline-flex; align-items: center; gap: 7px;
+          color: ${C.grey}; font-size: 11px; font-weight: 700; white-space: nowrap;
+        }
+        .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #2DA475; box-shadow: 0 0 0 3px #E5F4EE; display: inline-block; }
+        .rs-role-switch {
+          display: flex; gap: 3px; padding: 4px; border: 1px solid ${C.greyLine};
+          border-radius: 10px; background: #f8fafc;
+        }
+        .rs-role-switch button { padding: 8px 12px !important; border-radius: 7px !important; font-size: 11.5px !important; }
+        .rs-shell {
+          width: min(100%, 1280px);
+          margin: 0 auto;
+          min-height: calc(100vh - 136px);
+          background: ${C.white};
+          border: 1px solid ${C.greyLine};
+          border-radius: 14px;
+          box-shadow: 0 12px 32px rgba(24,43,82,.08);
+        }
+        .rs-shell.has-sidebar { flex-direction: row; }
+        .rs-sidebar { background: #fbfcfe; border-right: 1px solid ${C.greyLine}; }
+        .rs-sidebar-brand { padding: 25px 20px 22px; background: ${C.navyDeep}; border-bottom: 0; }
+        .rs-sidebar-brand > div { margin-bottom: 12px; }
+        .rs-sidebar-brand > div span { color: ${C.white} !important; }
+        .rs-sidebar-kicker, .rs-sidebar-label { color: #8492aa; }
+        .rs-sidebar-nav { padding: 24px 12px; }
+        .rs-sidebar-item { color: #65738b; border-radius: 8px; padding: 11px 12px; font-size: 12px; }
+        .rs-sidebar-item:hover { background: #edf1f8; color: ${C.navy}; }
+        .rs-sidebar-item.is-active { color: ${C.navy}; background: #e7ecf7; box-shadow: inset 3px 0 0 ${C.indigo}; }
+        .rs-sidebar-help { background: #edf2fa; color: ${C.navy}; }
+        .rs-portal-header {
+          min-height: 68px; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center;
+          gap: 16px; background: ${C.navyDeep}; color: ${C.white};
+        }
+        .rs-portal-header-title { display: grid; gap: 4px; }
+        .rs-portal-header-title strong { font-size: 15px; letter-spacing: -.01em; }
+        .rs-portal-breadcrumb { color: #aebcda; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+        .rs-portal-header-actions, .rs-ops-header-actions { display: flex; align-items: center; gap: 16px; }
+        .rs-portal-header .rs-service-status { color: #c6d2e8; }
+        .rs-header-icon { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 7px; background: rgba(255,255,255,.08); color: #fff; cursor: pointer; }
+        .rs-header-user { display: inline-flex; align-items: center; gap: 8px; color: #e7edf8; font-size: 11px; font-weight: 700; }
+        .rs-avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: ${C.navyDeep}; background: ${C.gold}; font-size: 11px; font-weight: 800; }
+        .rs-service-nav { min-height: 42px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid ${C.greyLine}; background: #fbfcfe; }
+        .rs-service-nav-label { color: ${C.navy}; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-right: 8px; }
+        .rs-service-nav button { height: 42px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: ${C.grey}; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .rs-service-nav button.is-current { color: ${C.navy}; border-bottom-color: ${C.gold}; }
+        .rs-shell-scroll { background: #f7f9fc; }
+        .rs-shell.has-sidebar .rs-shell-scroll { padding: 0; }
+        .rs-home-hero { margin-top: 20px; border-radius: 11px; background: linear-gradient(110deg, ${C.navyDeep}, ${C.indigo}); }
+        .rs-card { border-radius: 11px !important; box-shadow: 0 2px 8px rgba(24,43,82,.04) !important; }
+        .rs-card:hover { box-shadow: 0 8px 22px rgba(24,43,82,.09) !important; }
+
+        /* Dealer console */
+        .rs-ops-shell { width: min(100%, 1280px); min-height: calc(100vh - 136px); display: flex; overflow: hidden; background: #f7f9fc; border: 1px solid ${C.greyLine}; border-radius: 14px; box-shadow: 0 12px 32px rgba(24,43,82,.08); }
+        .rs-ops-sidebar { width: 236px; flex: 0 0 236px; display: flex; flex-direction: column; background: ${C.navyDeep}; color: #dbe4f5; }
+        .rs-ops-brand { padding: 25px 20px 21px; border-bottom: 1px solid rgba(255,255,255,.12); }
+        .rs-ops-brand > div { margin-bottom: 12px; }
+        .rs-ops-brand > div span { color: ${C.white} !important; }
+        .rs-ops-brand > span { color: #8d9cbb; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+        .rs-ops-location { margin: 18px 16px 4px; padding: 10px 11px; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; color: #f5f7fb; font-size: 12px; font-weight: 800; }
+        .rs-ops-location small { display: block; margin: 3px 0 0 14px; color: #91a1bf; font-size: 10px; font-weight: 500; }
+        .rs-ops-nav { padding: 20px 12px; }
+        .rs-ops-nav p { margin: 0 12px 9px; color: #8292b2; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+        .rs-ops-nav button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 12px; margin-bottom: 3px; border: 0; border-radius: 8px; background: transparent; color: #aebbd2; text-align: left; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .rs-ops-nav button:hover, .rs-ops-nav button.is-active { background: rgba(255,255,255,.1); color: #fff; }
+        .rs-ops-nav button.is-active { box-shadow: inset 3px 0 0 ${C.gold}; }
+        .rs-ops-bottom { margin-top: auto; padding: 17px 14px 20px; }
+        .rs-ops-security { display: flex; gap: 8px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,.07); color: #d8e1f1; }
+        .rs-ops-security span { display: grid; gap: 2px; }
+        .rs-ops-security b { font-size: 10px; } .rs-ops-security small { color: #91a1bf; font-size: 9px; }
+        .rs-ops-bottom > button { display: flex; align-items: center; gap: 8px; margin-top: 13px; padding: 7px 8px; border: 0; background: transparent; color: #9baac5; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .rs-ops-main { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .rs-ops-header { min-height: 82px; display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 16px 28px; background: ${C.white}; border-bottom: 1px solid ${C.greyLine}; }
+        .rs-ops-header h1 { margin: 5px 0 0; color: ${C.navy}; font-family: Poppins, sans-serif; font-size: 22px; letter-spacing: -.02em; }
+        .rs-ops-header .rs-header-icon { border-color: ${C.greyLine}; background: #f7f9fc; color: ${C.navy}; }
+        .rs-ops-header .rs-header-user { color: ${C.navy}; }
+        .rs-subnav-divider { width: 1px; height: 14px; background: ${C.greyLine}; }
+        .rs-ops-subnav { display: flex; align-items: center; gap: 12px; padding: 10px 28px; color: ${C.grey}; font-size: 10px; font-weight: 600; background: #fbfcfe; border-bottom: 1px solid ${C.greyLine}; }
+        .rs-subnav-spacer { flex: 1; }
+        .rs-ops-subnav button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; color: ${C.indigo}; border: 1px solid #cbd5e6; border-radius: 6px; background: ${C.white}; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .rs-ops-content { padding: 26px 28px 32px; overflow-y: auto; }
+        .rs-dashboard-content > div:first-child { margin-bottom: 26px !important; }
+        .rs-dashboard-content .rs-card { background: ${C.white}; }
+
+        @media (min-width: 640px) {
+          .rs-shell { min-height: calc(100vh - 136px); max-height: none; }
+          .rs-shell.has-sidebar .rs-sidebar { width: 224px; flex-basis: 224px; }
+          .rs-shell.has-sidebar .rs-shell-main { min-height: calc(100vh - 136px); }
+          .rs-shell.has-sidebar .rs-shell-scroll > div > div:first-child { padding-left: 34px !important; padding-right: 34px !important; }
+        }
+        @media (max-width: 760px) {
+          .rs-page { padding: 10px 8px 20px; }
+          .rs-global-header { align-items: flex-start; padding: 12px; }
+          .rs-global-utility { margin-left: auto; }
+          .rs-global-status { display: none; }
+          .rs-role-switch button { padding: 7px 8px !important; font-size: 10px !important; }
+          .rs-role-switch button svg { display: none; }
+          .rs-portal-header { padding: 13px 16px; }
+          .rs-portal-header-actions .rs-service-status, .rs-portal-header-actions .rs-header-user span:last-child { display: none; }
+          .rs-service-nav { overflow-x: auto; gap: 14px; padding: 0 16px; white-space: nowrap; }
+          .rs-service-nav-label { display: none; }
+          .rs-ops-shell { display: block; }
+          .rs-ops-sidebar { display: none; }
+          .rs-ops-header { padding: 15px 16px; }
+          .rs-ops-header h1 { font-size: 18px; }
+          .rs-ops-header-actions .rs-service-status, .rs-ops-header-actions .rs-header-user span:last-child { display: none; }
+          .rs-ops-subnav, .rs-ops-content { padding-left: 16px; padding-right: 16px; }
+        }
+        @media (max-width: 480px) {
+          .rs-global-header { margin-bottom: 10px; }
+          .rs-global-brand p:first-child { font-size: 13px !important; }
+          .rs-global-brand p:last-child { font-size: 9px !important; }
+          .rs-global-brand img { width: 26px !important; height: 26px !important; }
+          .rs-role-switch button { padding: 7px 6px !important; }
+          .rs-portal-header-title strong { font-size: 13px; }
+          .rs-portal-header { min-height: 61px; }
+          .rs-ops-subnav span:not(.rs-subnav-spacer):not(.rs-subnav-divider) { font-size: 9px; }
+        }
       `}</style>
       <div className="rs-page" style={{ fontFamily: "Inter, 'Noto Sans Devanagari', sans-serif", minHeight: "100vh" }}>
         {/* Role switcher — for demo/judge navigation, not part of the beneficiary product itself */}
-        <div style={{ maxWidth: 1080, margin: "0 auto 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, color: C.navy }}>
+        <header className="rs-global-header">
+          <div className="rs-global-brand">
             <img src={LOGO_SRC} alt="" style={{ width: 30, height: 30, objectFit: "contain" }} />
             <div>
               <p style={{ margin: 0, fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: 15 }}>Ration<span style={{ color: C.green }}>Setu</span></p>
-              <p style={{ margin: "1px 0 0", color: C.grey, fontSize: 10.5, fontWeight: 600 }}>{t(dict.studentProto)}</p>
+              <p style={{ margin: "1px 0 0", color: C.grey, fontSize: 10.5, fontWeight: 600 }}>Digital Public Distribution System</p>
             </div>
           </div>
-          <div className="rs-role-switch" style={{ display: "flex", background: "rgba(255,255,255,0.88)", borderRadius: 12, padding: 4, border: `1px solid ${C.greyLine}`, gap: 3, boxShadow: "0 3px 12px rgba(23,50,77,0.05)" }}>
+          <div className="rs-global-utility">
+            <span className="rs-global-status"><span className="rs-status-dot" /> Portal services available</span>
+            <div className="rs-role-switch">
             {[
               { key: "beneficiary", label: t(dict.roleBen), icon: User },
               { key: "dealer", label: t(dict.roleDealer), icon: LayoutDashboard },
+              { key: "admin", label: t(dict.roleAdmin), icon: BarChart3 },
             ].map((r) => (
               <button key={r.key} onClick={() => { setRole(r.key); if (r.key !== "dealer") setDealerAuthenticated(false); }} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 9,
@@ -2139,13 +2360,14 @@ export default function RationSetuApp() {
                 <r.icon size={13} /> {r.label}
               </button>
             ))}
+            </div>
           </div>
-        </div>
+        </header>
 
         <div style={{ display: "flex", justifyContent: "center" }}>
           {role === "beneficiary" && <BeneficiaryApp state={state} dispatch={dispatch} lang={lang} setLang={setLang} />}
           {role === "dealer" && !dealerAuthenticated && <DealerLoginScreen onLogin={() => setDealerAuthenticated(true)} />}
-          {role === "dealer" && dealerAuthenticated && <DealerDashboard state={state} dispatch={dispatch} lang={lang} />}
+          {role === "dealer" && dealerAuthenticated && <DealerDashboard state={state} dispatch={dispatch} lang={lang} onLogout={() => setDealerAuthenticated(false)} />}
           {role === "admin" && <AdminDashboard state={state} />}
         </div>
 
