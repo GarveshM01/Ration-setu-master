@@ -146,8 +146,8 @@ const C = {
   indigo: "#314A8A",
   bg: "#F4F6FA",
   cream: "#E9EEF7",
-  green: "#13795B",
-  greenBg: "#E5F4EE",
+  green: "#B87512",
+  greenBg: "#FFF4DC",
   gold: "#D99A2B",
   goldBg: "#FFF4DC",
   red: "#B9404A",
@@ -511,7 +511,7 @@ function reducer(state, action) {
     }
     case "COMPLETE_DISTRIBUTION": {
       const pending = state.pendingDistribution;
-      if (!pending || pending.tokenId !== action.tokenId || pending.otp !== action.otp) return state;
+      if (!pending || pending.tokenId !== action.tokenId || String(pending.otp).toUpperCase() !== String(action.otp).trim().toUpperCase()) return state;
       const completedQueue = state.queue.map((q) => q.id === pending.tokenId ? { ...q, status: "completed" } : q);
       const nextWaiting = completedQueue.findIndex((q) => q.status === "waiting");
       const queue = nextWaiting === -1
@@ -893,31 +893,19 @@ function LoginScreen({ onDone }) {
   const [card, setCard] = useState("");
 
   return (
-    <div style={{ position: "relative", minHeight: "100%", overflow: "hidden" }}>
+    <div className="rs-auth-screen">
       {/* Background layer — blurred, ONLY on this screen. Not applied to any sibling/child content. */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute", inset: 0, zIndex: 0,
-          backgroundImage: `url(${LOGIN_BG})`, backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(10px)", transform: "scale(1.1)", // scale hides blurred edge fringing
-        }}
-      />
-      {/* Readability overlay — sits between the blurred image and the sharp content */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 1, background: "rgba(250,247,240,0.86)" }} />
-
-      {/* Sharp foreground content — untouched by the blur filter above */}
-      <div style={{ position: "relative", zIndex: 2, padding: "26px 22px" }}>
+      <div className="rs-auth-card">
         <Logo size={38} />
-        <h2 style={{ fontFamily: "Poppins, sans-serif", fontSize: 20, fontWeight: 700, color: C.navy, margin: "26px 0 22px" }}>{t(dict.welcome)}</h2>
+        <div className="rs-auth-heading"><span>Citizen services</span><h2>{t(dict.welcome)}</h2><p>Sign in securely to manage your ration services.</p></div>
 
         {step === 0 && (
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: C.grey }}>{t(dict.mobileNumber)}</label>
-            <div style={{ display: "flex", alignItems: "center", background: C.white, border: `1.5px solid ${C.greyLine}`, borderRadius: 12, padding: "12px 14px", margin: "8px 0 20px" }}>
+            <div className="rs-auth-input-row">
               <span style={{ color: C.grey, marginRight: 8, fontWeight: 600 }}>+91</span>
               <input value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="98XXXXXXXX"
-                style={{ border: "none", outline: "none", fontSize: 15, flex: 1, background: "transparent", fontFamily: "Inter" }} />
+                className="rs-auth-input" />
             </div>
             <Btn full icon={Phone} disabled={mobile.length < 10} onClick={() => setStep(1)}>{t(dict.sendOtp)}</Btn>
           </div>
@@ -926,9 +914,9 @@ function LoginScreen({ onDone }) {
         {step === 1 && (
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: C.grey }}>{t(dict.enterOtp)}</label>
-            <div style={{ margin: "8px 0 6px" }}>
+            <div className="rs-auth-field">
               <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="••••••"
-                style={{ width: "100%", boxSizing: "border-box", letterSpacing: 8, textAlign: "center", fontSize: 20, border: `1.5px solid ${C.greyLine}`, borderRadius: 12, padding: "12px 14px", fontFamily: "Inter", outline: "none" }} />
+                className="rs-auth-input rs-auth-code" />
             </div>
             <p style={{ fontSize: 11.5, color: C.grey, margin: "0 0 20px" }}>{t(dict.demoOtpHint)}</p>
             <Btn full icon={KeyRound} disabled={otp.length < 6} onClick={() => setStep(2)}>{t(dict.verify)}</Btn>
@@ -938,15 +926,15 @@ function LoginScreen({ onDone }) {
         {step === 2 && (
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 600, color: C.grey }}>{t(dict.rationCardNumber)}</label>
-            <div style={{ margin: "8px 0 20px" }}>
+            <div className="rs-auth-field">
               <input value={card} onChange={(e) => setCard(e.target.value)} placeholder="MP-45-1234-5678"
-                style={{ width: "100%", boxSizing: "border-box", fontSize: 15, border: `1.5px solid ${C.greyLine}`, borderRadius: 12, padding: "12px 14px", fontFamily: "Inter", outline: "none" }} />
+                className="rs-auth-input" />
             </div>
             <Btn full icon={IdCard} disabled={card.length < 4} onClick={onDone}>{t(dict.continue)}</Btn>
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 28 }}>
+        <div className="rs-auth-steps">
           {[0, 1, 2].map((i) => (
             <div key={i} style={{ width: 7, height: 7, borderRadius: 4, background: i <= step ? C.green : C.greyLine }} />
           ))}
@@ -972,9 +960,9 @@ function DealerLoginScreen({ onLogin }) {
   };
 
   return (
-    <div style={{ maxWidth: 460, width: "100%", margin: "0 auto" }}>
-      <Card style={{ padding: 24 }}>
-        <div style={{ textAlign: "center", marginBottom: 22 }}>
+    <div className="rs-auth-screen">
+      <Card style={{ padding: 24, maxWidth: 440, width: "100%" }}>
+        <div className="rs-auth-heading rs-auth-dealer-heading">
           <Logo size={52} />
           <h2 style={{ fontFamily: "Poppins, sans-serif", color: C.navy, fontSize: 22, margin: "14px 0 5px" }}>{t(dict.dealerLogin)}</h2>
           <p style={{ color: C.grey, fontSize: 12.5, margin: 0 }}>{t(dict.officialPortal)}</p>
@@ -985,7 +973,7 @@ function DealerLoginScreen({ onLogin }) {
           onChange={(e) => setDealerId(e.target.value)}
           placeholder="FPS-102"
           autoComplete="username"
-          style={{ width: "100%", border: `1.5px solid ${C.greyLine}`, borderRadius: 10, padding: "12px 13px", fontSize: 14, outline: "none", marginBottom: 14 }}
+          className="rs-auth-input"
         />
         <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.grey, marginBottom: 7 }}>{t(dict.dealerPin)}</label>
         <input
@@ -995,7 +983,7 @@ function DealerLoginScreen({ onLogin }) {
           type="password"
           inputMode="numeric"
           autoComplete="current-password"
-          style={{ width: "100%", border: `1.5px solid ${C.greyLine}`, borderRadius: 10, padding: "12px 13px", fontSize: 14, outline: "none", marginBottom: 8 }}
+          className="rs-auth-input"
         />
         <p style={{ color: C.grey, fontSize: 11.5, margin: "0 0 16px" }}>{t(dict.demoDealerHint)}</p>
         {error && <p role="alert" style={{ color: C.red, fontSize: 12.5, margin: "0 0 12px" }}>{error}</p>}
@@ -1841,7 +1829,7 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
       setOtpError(t(dict.otpRequired));
       return;
     }
-    if (distributionOtp !== state.pendingDistribution.otp) {
+    if (distributionOtp.trim().toUpperCase() !== String(state.pendingDistribution.otp).toUpperCase()) {
       setOtpError(t(dict.invalidOtp));
       return;
     }
@@ -1965,13 +1953,16 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
                         <p style={{ margin: "0 0 8px", color: C.grey, fontSize: 11 }}>{t(dict.demoSecurityNote)}</p>
                         <input
                           value={distributionOtp}
-                          onChange={(e) => { setDistributionOtp(e.target.value.replace(/\D/g, "").slice(0, 4)); setOtpError(""); }}
+                          onChange={(e) => { setDistributionOtp(e.target.value.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 8)); setOtpError(""); }}
                           placeholder="••••"
-                          inputMode="numeric"
+                          inputMode="text"
+                          autoCapitalize="characters"
+                          autoComplete="one-time-code"
+                          maxLength={8}
                           style={{ width: "100%", border: `1.5px solid ${C.greyLine}`, borderRadius: 9, padding: "10px 12px", fontSize: 16, letterSpacing: 5, textAlign: "center", outline: "none", marginBottom: 8 }}
                         />
                         {otpError && <p style={{ margin: "0 0 8px", color: C.red, fontSize: 11.5 }}>{otpError}</p>}
-                        <Btn full size="sm" variant="green" icon={CheckCircle2} disabled={distributionOtp.length !== 4} onClick={completeWithOtp}>{t(dict.completeDistribution)}</Btn>
+                        <Btn full size="sm" variant="green" icon={CheckCircle2} disabled={distributionOtp.length < 4} onClick={completeWithOtp}>{t(dict.completeDistribution)}</Btn>
                       </div>
                     )}
                   </div>
@@ -2192,6 +2183,22 @@ export default function RationSetuApp() {
         .rs-public-help p { margin-bottom: 0; }
         .rs-public-help > svg { margin-left: auto; color: ${C.grey}; flex: 0 0 auto; }
         .rs-public-footer { display: flex; justify-content: space-between; gap: 12px; padding: 17px 34px; border-top: 1px solid ${C.greyLine}; color: ${C.grey}; font-size: 10px; }
+        .rs-auth-screen { min-height: 100%; display: grid; place-items: center; padding: 42px 20px; background: #F4F6FA; }
+        .rs-auth-card { width: min(100%, 440px); padding: 30px 32px; border: 1px solid ${C.greyLine}; border-radius: 12px; background: ${C.white}; box-shadow: 0 12px 28px rgba(16,42,67,.08); }
+        .rs-auth-card > img, .rs-auth-card > div:first-child { margin-bottom: 20px; }
+        .rs-auth-heading { margin-bottom: 22px; }
+        .rs-auth-heading > span { color: ${C.gold}; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+        .rs-auth-heading h2 { margin: 7px 0 5px; color: ${C.navy}; font-family: Poppins, sans-serif; font-size: 21px; letter-spacing: -.02em; }
+        .rs-auth-heading p { margin: 0; color: ${C.grey}; font-size: 12px; line-height: 1.5; }
+        .rs-auth-dealer-heading { text-align: center; }
+        .rs-auth-field { margin: 7px 0 17px; }
+        .rs-auth-input-row, .rs-auth-input { width: 100%; box-sizing: border-box; border: 1px solid ${C.greyLine}; border-radius: 7px; background: ${C.white}; padding: 11px 12px; font: 14px Inter, sans-serif; color: ${C.navy}; }
+        .rs-auth-input-row { display: flex; align-items: center; margin: 7px 0 17px; }
+        .rs-auth-input-row .rs-auth-input { border: 0; padding: 0; }
+        .rs-auth-input:focus { border-color: ${C.navy} !important; box-shadow: 0 0 0 3px rgba(16,42,67,.1); }
+        .rs-auth-code { letter-spacing: .32em; text-align: center; font-size: 18px; }
+        .rs-auth-steps { display: flex; gap: 6px; justify-content: center; margin-top: 22px; }
+        .rs-auth-steps > div { width: 7px; height: 7px; border-radius: 50%; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
