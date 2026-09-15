@@ -142,20 +142,24 @@ import { isSupabaseConfigured, saveWhatsAppMessage } from "../services/whatsappR
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
-  navy: "#12304A",
-  navyDeep: "#0B2239",
-  indigo: "#234E70",
-  bg: "#EEF3F7",
-  cream: "#F7F8FA",
-  green: "#138A5B",
-  greenBg: "#E8F5EF",
-  gold: "#E87722",
-  goldBg: "#FFF1E8",
-  red: "#B9404A",
-  redBg: "#FCEAED",
-  grey: "#425466",
-  greyLine: "#CBD5DF",
-  white: "#FFFFFF",
+  navy: "var(--rs-navy)",
+  navyDeep: "var(--rs-navy-deep)",
+  indigo: "var(--rs-indigo)",
+  bg: "var(--rs-bg)",
+  cream: "var(--rs-surface-muted)",
+  surfaceMuted: "var(--rs-surface-muted)",
+  green: "var(--rs-green)",
+  greenBg: "var(--rs-green-bg)",
+  gold: "var(--rs-gold)",
+  goldBg: "var(--rs-gold-bg)",
+  red: "var(--rs-red)",
+  redBg: "var(--rs-red-bg)",
+  warningText: "var(--rs-warning-text)",
+  infoBg: "var(--rs-info-bg)",
+  infoText: "var(--rs-info-text)",
+  grey: "var(--rs-text-muted)",
+  greyLine: "var(--rs-border)",
+  white: "var(--rs-surface)",
 };
 
 /* =========================================================================
@@ -446,6 +450,14 @@ const initialState = {
 };
 
 const STORAGE_KEY = "ration-setu-demo-state-v1";
+const THEME_STORAGE_KEY = "ration-setu-theme-v1";
+
+function getInitialTheme() {
+  if (typeof window === "undefined") return "light";
+  const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "dark" || saved === "light") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
 function loadInitialState() {
   if (typeof window === "undefined") return initialState;
@@ -667,9 +679,9 @@ function Card({ children, style, onClick }) {
 function StatusPill({ status }) {
   const { t } = useT();
   const map = {
-    waiting: { bg: C.goldBg, fg: "#8A6410", label: t(dict.waiting) },
+    waiting: { bg: C.goldBg, fg: C.warningText, label: t(dict.waiting) },
     serving: { bg: C.greenBg, fg: C.green, label: t(dict.serving) },
-    completed: { bg: "#EAF0F6", fg: C.grey, label: t(dict.completed) },
+    completed: { bg: C.infoBg, fg: C.grey, label: t(dict.completed) },
     noshow: { bg: C.redBg, fg: C.red, label: t(dict.noshow) },
   };
   const s = map[status] || map.waiting;
@@ -684,7 +696,7 @@ function StockPill({ level }) {
   const { t } = useT();
   const map = {
     available: { bg: C.greenBg, fg: C.green, label: t(dict.available) },
-    limited: { bg: C.goldBg, fg: "#8A6410", label: t(dict.limited) },
+    limited: { bg: C.goldBg, fg: C.warningText, label: t(dict.limited) },
     out: { bg: C.redBg, fg: C.red, label: t(dict.outOfStock) },
   };
   const s = map[level] || map.available;
@@ -702,7 +714,7 @@ function EkycPill({ statusKey }) {
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700,
       padding: "3px 9px", borderRadius: 999,
-      background: verified ? C.greenBg : C.goldBg, color: verified ? C.green : "#8A6410",
+      background: verified ? C.greenBg : C.goldBg, color: verified ? C.green : C.warningText,
     }}>
       <CheckCircle2 size={11} />
       {t(dict[statusKey])}
@@ -716,7 +728,7 @@ function ModePill({ mode }) {
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999,
-      background: isOnline ? "#EAF0FB" : "#FBEFE0", color: isOnline ? "#2A5CA8" : "#9C6A16",
+      background: isOnline ? C.infoBg : C.goldBg, color: isOnline ? C.infoText : C.warningText,
       display: "inline-flex", alignItems: "center", gap: 4,
     }}>
       {isOnline ? <Phone size={10} /> : <QrCode size={10} />}
@@ -1098,7 +1110,7 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
 
       {!userToken && (
         <Card style={{ marginBottom: 14, background: C.goldBg, border: "none" }}>
-          <p style={{ fontSize: 13, color: "#7A5A0F", fontWeight: 600, margin: "0 0 10px" }}>{t(dict.noTokenYet)}</p>
+          <p style={{ fontSize: 13, color: C.warningText, fontWeight: 600, margin: "0 0 10px" }}>{t(dict.noTokenYet)}</p>
           <Btn size="sm" icon={Ticket} onClick={() => onNav("book")}>{t(dict.bookNow)}</Btn>
         </Card>
       )}
@@ -1179,7 +1191,7 @@ function EntitlementScreen({ onBack, onNav }) {
         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.grey, letterSpacing: 0.3, margin: "12px 0 10px" }}>{t(dict.entQty)}</p>
         <div style={{ background: C.goldBg, borderRadius: 12, padding: 11, display: "flex", gap: 8, marginBottom: 12 }}>
           <AlertTriangle size={15} color="#8A6410" style={{ flexShrink: 0 }} />
-          <p style={{ margin: 0, color: "#7A5A0F", fontSize: 11.5, lineHeight: 1.4 }}>
+          <p style={{ margin: 0, color: C.warningText, fontSize: 11.5, lineHeight: 1.4 }}>
             {t(dict.stockAlert)}: {t({ hi: "चीनी सीमित है और मिट्टी का तेल उपलब्ध नहीं है।", en: "Sugar is limited and kerosene is out of stock." })}
           </p>
         </div>
@@ -1328,7 +1340,7 @@ function ComplaintFormScreen({ dispatch, onBack, onSubmitted }) {
 function ComplaintsScreen({ state, dispatch, onBack, onNav }) {
   const { t, lang } = useT();
   const statusMap = { submitted: "statusSubmitted", review: "statusReview", resolved: "statusResolved" };
-  const statusColor = { submitted: { bg: C.goldBg, fg: "#8A6410" }, review: { bg: "#EAF0FB", fg: "#2A5CA8" }, resolved: { bg: C.greenBg, fg: C.green } };
+  const statusColor = { submitted: { bg: C.goldBg, fg: C.warningText }, review: { bg: C.infoBg, fg: C.infoText }, resolved: { bg: C.greenBg, fg: C.green } };
   return (
     <div>
       <ScreenHeader title={t(dict.complaintsTitle)} onBack={onBack} />
@@ -1568,7 +1580,7 @@ function LiveQueueScreen({ state, lang }) {
       <ScreenHeader title={t(dict.liveQueueTitle)} />
       <div style={{ padding: "8px 18px" }}>
         <Card style={{ marginBottom: 14, textAlign: "center", background: C.greenBg, border: "none" }}>
-          <p style={{ fontSize: 11.5, color: "#1E6B49", margin: "0 0 4px", fontWeight: 700 }}>{t(dict.nowServing)}</p>
+          <p style={{ fontSize: 11.5, color: C.green, margin: "0 0 4px", fontWeight: 700 }}>{t(dict.nowServing)}</p>
           <p style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: 30, color: C.green, margin: 0 }}>{serving ? serving.id : "—"}</p>
         </Card>
 
@@ -1584,7 +1596,7 @@ function LiveQueueScreen({ state, lang }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: 15, color: C.navy, minWidth: 44 }}>{q.id}</span>
                   <ModePill mode={q.mode} />
-                  {isUser && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#8A6410" }}>({t(dict.yourTokenTag)})</span>}
+                  {isUser && <span style={{ fontSize: 10.5, fontWeight: 700, color: C.warningText }}>({t(dict.yourTokenTag)})</span>}
                 </div>
                 <StatusPill status={q.status} />
               </div>
@@ -1623,7 +1635,7 @@ function NotifScreen({ state }) {
         })}
         {whatsapp.map((item) => (
           <Card key={item.id} style={{ marginBottom: 10, display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#E8EEF7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: C.infoBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Phone size={16} color={C.navy} />
             </div>
             <div style={{ minWidth: 0 }}>
@@ -1907,8 +1919,8 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
         <StatBox label={t(dict.avgWait)} value={`${state.avgWaitMin} ${t(dict.min)}`} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px,1fr))", gap: 10, marginBottom: 20 }}>
-        <StatBox label={t(dict.onlineTokensLbl)} value={onlineCount} accent={"#2A5CA8"} />
-        <StatBox label={t(dict.qrTokensLbl)} value={qrCount} accent={"#9C6A16"} />
+        <StatBox label={t(dict.onlineTokensLbl)} value={onlineCount} accent={C.infoText} />
+        <StatBox label={t(dict.qrTokensLbl)} value={qrCount} accent={C.warningText} />
         <StatBox label={t(dict.serving)} value={servingCount} accent={C.green} />
         <StatBox label={t(dict.estCompletion)} value={"1:20 PM"} />
       </div>
@@ -2089,7 +2101,7 @@ function InsightCard({ icon: Icon, color, title, body }) {
   return (
     <Card>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: color === C.green ? C.greenBg : color === C.gold ? C.goldBg : C.infoBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon size={15} color={color} />
         </div>
         <p style={{ margin: 0, fontWeight: 700, fontSize: 12.5, color: C.navy }}>{title}</p>
@@ -2174,11 +2186,15 @@ export default function RationSetuApp() {
   const [lang, setLang] = useState("hi");
   const [role, setRole] = useState("beneficiary");
   const [dealerAuthenticated, setDealerAuthenticated] = useState(false);
+  const [theme, setTheme] = useState(getInitialTheme);
   const [state, dispatch] = useReducer(reducer, undefined, loadInitialState);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   const t = (entry) => (entry && entry[lang] ? entry[lang] : entry?.en || "");
 
@@ -2195,8 +2211,47 @@ export default function RationSetuApp() {
 
         /* ===== Responsive beneficiary app shell (replaces the old fixed phone-bezel mockup) ===== */
         .rs-page {
+          --rs-navy: #12304A;
+          --rs-navy-deep: #0B2239;
+          --rs-indigo: #234E70;
+          --rs-bg: #EEF3F7;
+          --rs-surface: #FFFFFF;
+          --rs-surface-muted: #F7F8FA;
+          --rs-text: #1F2D3D;
+          --rs-text-muted: #425466;
+          --rs-border: #CBD5DF;
+          --rs-green: #138A5B;
+          --rs-green-bg: #E8F5EF;
+          --rs-gold: #E87722;
+          --rs-gold-bg: #FFF1E8;
+          --rs-red: #B9404A;
+          --rs-red-bg: #FCEAED;
+          --rs-warning-text: #8A6410;
+          --rs-info-bg: #EAF0FB;
+          --rs-info-text: #2A5CA8;
           padding: 24px 20px 30px;
           background: ${C.bg} !important;
+        }
+        .rs-page.rs-theme-dark {
+          color-scheme: dark;
+          --rs-navy: #E6F0F7;
+          --rs-navy-deep: #071827;
+          --rs-indigo: #8DB9D8;
+          --rs-bg: #0E1C29;
+          --rs-surface: #142738;
+          --rs-surface-muted: #1B3448;
+          --rs-text: #F3F7FA;
+          --rs-text-muted: #B8C7D4;
+          --rs-border: #355064;
+          --rs-green: #5BD39B;
+          --rs-green-bg: #123D32;
+          --rs-gold: #FFAA70;
+          --rs-gold-bg: #4B2A1B;
+          --rs-red: #FF8E98;
+          --rs-red-bg: #49272D;
+          --rs-warning-text: #FFD08A;
+          --rs-info-bg: #1D3B55;
+          --rs-info-text: #A9D5F3;
         }
         .rs-role-switch { flex-wrap: wrap; }
 
@@ -2404,7 +2459,7 @@ export default function RationSetuApp() {
 
         button { font-family: Inter, 'Noto Sans Devanagari', sans-serif; }
         button:focus-visible, input:focus-visible, textarea:focus-visible {
-          outline: 3px solid rgba(22,128,92,0.25);
+          outline: 3px solid color-mix(in srgb, ${C.gold} 45%, transparent);
           outline-offset: 2px;
         }
 
@@ -2430,6 +2485,12 @@ export default function RationSetuApp() {
         .rs-global-brand { display: flex; align-items: center; gap: 10px; color: ${C.navy}; }
         .rs-global-brand p:first-child { letter-spacing: -.02em; }
         .rs-global-utility { display: flex; align-items: center; gap: 18px; }
+        .rs-theme-toggle {
+          display: inline-flex; align-items: center; gap: 6px; border: 1px solid ${C.greyLine};
+          border-radius: 7px; padding: 7px 9px; background: ${C.white}; color: ${C.navy};
+          cursor: pointer; font: 700 10px Inter, sans-serif;
+        }
+        .rs-theme-toggle:hover { background: ${C.cream}; }
         .rs-global-status, .rs-service-status {
           display: inline-flex; align-items: center; gap: 7px;
           color: ${C.grey}; font-size: 11px; font-weight: 700; white-space: nowrap;
@@ -2437,7 +2498,7 @@ export default function RationSetuApp() {
         .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.green}; box-shadow: 0 0 0 3px ${C.greenBg}; display: inline-block; }
         .rs-role-switch {
           display: flex; gap: 3px; padding: 4px; border: 1px solid ${C.greyLine};
-          border-radius: 10px; background: #f8fafc;
+          border-radius: 10px; background: ${C.cream};
         }
         .rs-role-switch button { padding: 8px 12px !important; border-radius: 7px !important; font-size: 11.5px !important; }
         .rs-shell {
@@ -2476,14 +2537,14 @@ export default function RationSetuApp() {
         .rs-service-nav-label { color: ${C.navy}; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-right: 8px; }
         .rs-service-nav button { height: 42px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: ${C.grey}; font-size: 11px; font-weight: 700; cursor: pointer; }
         .rs-service-nav button.is-current { color: ${C.navy}; border-bottom-color: ${C.gold}; }
-        .rs-shell-scroll { background: #f7f9fc; }
+        .rs-shell-scroll { background: ${C.bg}; }
         .rs-shell.has-sidebar .rs-shell-scroll { padding: 0; }
         .rs-home-hero { margin-top: 20px; border-radius: 11px; background: ${C.navyDeep}; }
         .rs-card { border-radius: 11px !important; box-shadow: 0 2px 8px rgba(24,43,82,.04) !important; }
         .rs-card:hover { box-shadow: 0 8px 22px rgba(24,43,82,.09) !important; }
 
         /* Dealer console */
-        .rs-ops-shell { width: min(100%, 1280px); min-height: calc(100vh - 136px); display: flex; overflow: hidden; background: #f7f9fc; border: 1px solid ${C.greyLine}; border-radius: 14px; box-shadow: 0 12px 32px rgba(24,43,82,.08); }
+        .rs-ops-shell { width: min(100%, 1280px); min-height: calc(100vh - 136px); display: flex; overflow: hidden; background: ${C.bg}; border: 1px solid ${C.greyLine}; border-radius: 14px; box-shadow: 0 12px 32px rgba(24,43,82,.08); }
         .rs-ops-sidebar { width: 236px; flex: 0 0 236px; display: flex; flex-direction: column; background: ${C.navyDeep}; color: #dbe4f5; }
         .rs-ops-brand { padding: 25px 20px 21px; border-bottom: 1px solid rgba(255,255,255,.12); }
         .rs-ops-brand > div { margin-bottom: 12px; }
@@ -2504,12 +2565,37 @@ export default function RationSetuApp() {
         .rs-ops-main { min-width: 0; flex: 1; display: flex; flex-direction: column; }
         .rs-ops-header { min-height: 82px; display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 16px 28px; background: ${C.white}; border-bottom: 1px solid ${C.greyLine}; }
         .rs-ops-header h1 { margin: 5px 0 0; color: ${C.navy}; font-family: Poppins, sans-serif; font-size: 22px; letter-spacing: -.02em; }
-        .rs-ops-header .rs-header-icon { border-color: ${C.greyLine}; background: #f7f9fc; color: ${C.navy}; }
+        .rs-ops-header .rs-header-icon { border-color: ${C.greyLine}; background: ${C.bg}; color: ${C.navy}; }
         .rs-ops-header .rs-header-user { color: ${C.navy}; }
         .rs-subnav-divider { width: 1px; height: 14px; background: ${C.greyLine}; }
-        .rs-ops-subnav { display: flex; align-items: center; gap: 12px; padding: 10px 28px; color: ${C.grey}; font-size: 10px; font-weight: 600; background: #fbfcfe; border-bottom: 1px solid ${C.greyLine}; }
+        .rs-ops-subnav { display: flex; align-items: center; gap: 12px; padding: 10px 28px; color: ${C.grey}; font-size: 10px; font-weight: 600; background: ${C.surfaceMuted}; border-bottom: 1px solid ${C.greyLine}; }
         .rs-subnav-spacer { flex: 1; }
-        .rs-ops-subnav button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; color: ${C.indigo}; border: 1px solid #cbd5e6; border-radius: 6px; background: ${C.white}; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .rs-ops-subnav button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; color: ${C.indigo}; border: 1px solid ${C.greyLine}; border-radius: 6px; background: ${C.white}; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .rs-theme-dark .rs-public-home,
+        .rs-theme-dark .rs-shell-scroll,
+        .rs-theme-dark .rs-ops-shell { background: ${C.bg} !important; }
+        .rs-theme-dark .rs-public-service-grid button,
+        .rs-theme-dark .rs-public-notice,
+        .rs-theme-dark .rs-public-help,
+        .rs-theme-dark .rs-auth-card,
+        .rs-theme-dark .rs-wa-module,
+        .rs-theme-dark .rs-shell,
+        .rs-theme-dark .rs-ops-header,
+        .rs-theme-dark .rs-dashboard-content .rs-card { background: ${C.white} !important; }
+        .rs-theme-dark .rs-wa-activity th { background: ${C.surfaceMuted} !important; }
+        .rs-theme-dark .rs-sidebar-kicker,
+        .rs-theme-dark .rs-sidebar-label,
+        .rs-theme-dark .rs-sidebar-item { color: ${C.grey} !important; }
+        .rs-theme-dark .rs-sidebar-item:hover { background: ${C.cream} !important; }
+        .rs-theme-dark .rs-public-hero h1,
+        .rs-theme-dark .rs-public-section-heading h2,
+        .rs-theme-dark .rs-public-help h3,
+        .rs-theme-dark .rs-auth-heading h2,
+        .rs-theme-dark .rs-wa-heading h2,
+        .rs-theme-dark .rs-ops-header h1 { color: ${C.navy} !important; }
+        .rs-theme-dark .rs-auth-input,
+        .rs-theme-dark .rs-wa-composer select,
+        .rs-theme-dark .rs-wa-composer textarea { background: ${C.surfaceMuted} !important; color: ${C.navy} !important; }
         .rs-ops-content { padding: 26px 28px 32px; overflow-y: auto; }
         .rs-dashboard-content > div:first-child { margin-bottom: 26px !important; }
         .rs-dashboard-content .rs-card { background: ${C.white}; }
@@ -2549,7 +2635,7 @@ export default function RationSetuApp() {
           .rs-ops-subnav span:not(.rs-subnav-spacer):not(.rs-subnav-divider) { font-size: 9px; }
         }
       `}</style>
-      <div className="rs-page" style={{ fontFamily: "Inter, 'Noto Sans Devanagari', sans-serif", minHeight: "100vh" }}>
+      <div className={`rs-page ${theme === "dark" ? "rs-theme-dark" : ""}`} style={{ fontFamily: "Inter, 'Noto Sans Devanagari', sans-serif", minHeight: "100vh" }}>
         {/* Role switcher — for demo/judge navigation, not part of the beneficiary product itself */}
         <header className="rs-global-header">
           <div className="rs-global-brand">
@@ -2561,6 +2647,15 @@ export default function RationSetuApp() {
           </div>
           <div className="rs-global-utility">
             <span className="rs-global-status"><span className="rs-status-dot" /> Portal services available</span>
+            <button
+              type="button"
+              className="rs-theme-toggle"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-pressed={theme === "dark"}
+              onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? "☀ Light" : "☾ Dark"}
+            </button>
             <div className="rs-role-switch">
             {[
               { key: "beneficiary", label: t(dict.roleBen), icon: User },
