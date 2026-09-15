@@ -866,30 +866,21 @@ function BottomNav({ active, onNav }) {
 function SplashScreen({ onStart }) {
   const { t } = useT();
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "50px 28px 34px", background: `linear-gradient(180deg, ${C.bg} 0%, #F4EEDD 100%)`, textAlign: "center" }}>
-      <span style={{ fontSize: 10.5, fontWeight: 700, color: C.grey, letterSpacing: 0.4, background: C.cream, padding: "5px 12px", borderRadius: 999 }}>
-        {t(dict.studentProto)}
-      </span>
-      <div>
-        <img
-          src={LOGO_SRC}
-          alt="Ration Setu"
-          style={{ margin: "0 auto 22px", width: 92, height: 92, objectFit: "contain", display: "block" }}
-        />
-        <h1 style={{ fontFamily: "Poppins, sans-serif", fontWeight: 800, fontSize: 30, color: C.navy, margin: "0 0 8px" }}>
-          Ration<span style={{ color: C.green }}>Setu</span>
-        </h1>
-        <p style={{ fontSize: 15.5, color: C.navy, fontWeight: 600, margin: "0 0 6px" }}>{t(dict.tagline)}</p>
-        <p style={{ fontSize: 13, color: C.grey, margin: 0 }}>{t(dict.usp)}</p>
-      </div>
-      <div style={{ width: "100%" }}>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 12 }}>
-          <button type="button" onClick={() => onStart("hi")} style={{ flex: 1, border: `1.5px solid ${C.green}`, background: C.greenBg, color: C.green, borderRadius: 10, padding: "9px 8px", fontWeight: 700, cursor: "pointer" }}>हिंदी</button>
-          <button type="button" onClick={() => onStart("en")} style={{ flex: 1, border: `1.5px solid ${C.navy}`, background: C.white, color: C.navy, borderRadius: 10, padding: "9px 8px", fontWeight: 700, cursor: "pointer" }}>English</button>
-        </div>
-        <Btn full icon={ArrowRight} onClick={() => onStart()}>{t(dict.getStarted)}</Btn>
-        <p style={{ fontSize: 10.5, color: C.grey, marginTop: 14 }}>{t(dict.disclaimerShort)}</p>
-      </div>
+    <div className="rs-public-home">
+      <header className="rs-public-header">
+        <div className="rs-public-brand"><img src={LOGO_SRC} alt="Ration Setu" /><div><strong>Ration<span>Setu</span></strong><small>PUBLIC DISTRIBUTION SYSTEM</small></div></div>
+        <nav className="rs-public-nav"><a href="#services">Services</a><a href="#notices">Notices</a><a href="#help">Help & support</a></nav>
+        <div className="rs-public-actions"><button onClick={() => onStart("hi")}>हिंदी</button><button onClick={() => onStart("en")}>English</button><button className="rs-public-login" onClick={() => onStart()}><User size={15} /> Citizen login</button></div>
+      </header>
+      <main>
+        <section className="rs-public-hero">
+          <div className="rs-public-hero-copy"><span className="rs-public-kicker">GOVERNMENT SERVICE PORTAL · PDS</span><h1>Reliable access to your<br /><em>ration services.</em></h1><p>Manage your ration card, check entitlement, join the FPS queue, and track distribution from one secure portal.</p><div className="rs-public-hero-actions"><Btn icon={ArrowRight} onClick={() => onStart()}>{t(dict.getStarted)}</Btn><button className="rs-text-action" onClick={() => onStart("en")}>Explore services <ArrowRight size={15} /></button></div></div>
+          <div className="rs-public-hero-panel"><div className="rs-public-panel-top"><span>Service status</span><span className="rs-live"><i /> All systems operational</span></div><div className="rs-public-stat"><strong>FPS-102</strong><span>Assigned fair price shop</span></div><div className="rs-public-stat"><strong>18 min</strong><span>Current estimated wait</span></div><div className="rs-public-panel-footer"><ShieldCheck size={16} /> Secure, transparent and citizen-first</div></div>
+        </section>
+        <section className="rs-public-section" id="services"><div className="rs-public-section-heading"><div><span className="rs-public-kicker">CITIZEN SERVICES</span><h2>Everything you need, in one place</h2></div><span className="rs-section-note">Available 24×7</span></div><div className="rs-public-service-grid"><button onClick={() => onStart()}><IdCard /><span><b>Ration card services</b><small>View card, family and e-KYC details</small></span><ArrowRight /></button><button onClick={() => onStart()}><Ticket /><span><b>Book a distribution slot</b><small>Join the fair, unified queue online</small></span><ArrowRight /></button><button onClick={() => onStart()}><QrCode /><span><b>Scan FPS QR token</b><small>Join the queue at your assigned shop</small></span><ArrowRight /></button><button onClick={() => onStart("en")}><History /><span><b>Distribution history</b><small>Receipts, quantities and transaction status</small></span><ArrowRight /></button></div></section>
+        <section className="rs-public-lower" id="notices"><div className="rs-public-notice"><div className="rs-public-section-heading"><h2>Important notice</h2><span className="rs-notice-badge">For citizens</span></div><p>September 2026 monthly entitlement is now available. Check your assigned FPS stock before visiting the shop.</p><button onClick={() => onStart()}>View your entitlement <ArrowRight size={15} /></button></div><div className="rs-public-help" id="help"><div className="rs-help-icon"><Phone size={18} /></div><div><span className="rs-public-kicker">NEED ASSISTANCE?</span><h3>We are here to help</h3><p>Use the support centre to report a discrepancy or track a complaint.</p></div><ArrowRight size={18} /></div></section>
+      </main>
+      <footer className="rs-public-footer"><span>{t(dict.studentProto)} · {t(dict.disclaimerShort)}</span><span>RationSetu · Public Distribution System</span></footer>
     </div>
   );
 }
@@ -2147,6 +2138,60 @@ export default function RationSetuApp() {
         .rs-home-hero p { margin: 0; font-size: 12px; color: rgba(255,255,255,.7); }
         .rs-eyebrow { color: #B6E5D2; font-size: 9.5px; font-weight: 800; letter-spacing: .13em; }
         .rs-hero-mark { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #F7CB6E; position: relative; z-index: 1; flex: 0 0 auto; }
+        .rs-public-home { min-height: 640px; background: #F8FAFC; color: ${C.navy}; }
+        .rs-public-header { min-height: 78px; display: flex; align-items: center; gap: 28px; justify-content: space-between; padding: 0 34px; background: ${C.white}; border-bottom: 1px solid ${C.greyLine}; }
+        .rs-public-brand { display: flex; align-items: center; gap: 10px; min-width: 220px; }
+        .rs-public-brand img { width: 36px; height: 36px; object-fit: contain; }
+        .rs-public-brand strong { display: block; font-family: Poppins, sans-serif; font-size: 17px; letter-spacing: -.03em; }
+        .rs-public-brand strong span { color: ${C.green}; }
+        .rs-public-brand small { display: block; color: ${C.grey}; font-size: 8px; letter-spacing: .12em; font-weight: 800; margin-top: 2px; }
+        .rs-public-nav { display: flex; gap: 28px; margin-right: auto; }
+        .rs-public-nav a { color: ${C.grey}; text-decoration: none; font-size: 12px; font-weight: 700; }
+        .rs-public-nav a:hover { color: ${C.navy}; }
+        .rs-public-actions { display: flex; align-items: center; gap: 8px; }
+        .rs-public-actions button { border: 0; background: transparent; color: ${C.grey}; font-size: 11px; font-weight: 700; padding: 8px; cursor: pointer; }
+        .rs-public-actions .rs-public-login { display: inline-flex; align-items: center; gap: 7px; color: ${C.white}; background: ${C.navy}; border-radius: 7px; padding: 10px 14px; }
+        .rs-public-hero { max-width: 1050px; margin: 0 auto; padding: 68px 34px 56px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 50px; align-items: center; }
+        .rs-public-kicker { display: block; color: ${C.green}; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+        .rs-public-hero h1 { margin: 13px 0 14px; font-family: Poppins, sans-serif; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; letter-spacing: -.04em; color: ${C.navyDeep}; }
+        .rs-public-hero h1 em { color: #B87512; font-style: normal; }
+        .rs-public-hero-copy > p { max-width: 500px; color: ${C.grey}; line-height: 1.7; font-size: 14px; margin: 0 0 24px; }
+        .rs-public-hero-actions { display: flex; align-items: center; gap: 20px; }
+        .rs-text-action { border: 0; background: transparent; color: ${C.navy}; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+        .rs-public-hero-panel { background: ${C.navy}; color: ${C.white}; border-radius: 14px; padding: 22px; box-shadow: 0 18px 34px rgba(11,34,57,.18); }
+        .rs-public-panel-top, .rs-public-stat, .rs-public-panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .rs-public-panel-top { padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.14); color: #C9D5E4; font-size: 11px; font-weight: 700; }
+        .rs-live { color: #B5E4D0; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; }
+        .rs-live i, .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #55C493; display: inline-block; }
+        .rs-public-stat { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.14); flex-direction: column; align-items: flex-start; gap: 3px; }
+        .rs-public-stat strong { font-family: Poppins, sans-serif; font-size: 24px; }
+        .rs-public-stat span { color: #B8C7D9; font-size: 11px; }
+        .rs-public-panel-footer { justify-content: flex-start; color: #D8E1EC; font-size: 10px; padding-top: 18px; }
+        .rs-public-section { max-width: 1050px; margin: 0 auto; padding: 18px 34px 52px; }
+        .rs-public-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
+        .rs-public-section-heading h2 { font-family: Poppins, sans-serif; margin: 6px 0 0; font-size: 21px; letter-spacing: -.025em; }
+        .rs-section-note { color: ${C.grey}; font-size: 11px; }
+        .rs-public-service-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .rs-public-service-grid button { min-height: 155px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 16px; text-align: left; cursor: pointer; background: ${C.white}; border: 1px solid ${C.greyLine}; border-radius: 10px; padding: 18px; color: ${C.navy}; }
+        .rs-public-service-grid button:hover { border-color: ${C.green}; box-shadow: 0 8px 20px rgba(23,50,77,.08); transform: translateY(-2px); }
+        .rs-public-service-grid button > svg:first-child { color: ${C.green}; }
+        .rs-public-service-grid button > svg:last-child { color: ${C.grey}; align-self: flex-end; }
+        .rs-public-service-grid span { display: grid; gap: 6px; }
+        .rs-public-service-grid b { font-size: 12px; }
+        .rs-public-service-grid small { color: ${C.grey}; font-size: 10.5px; line-height: 1.45; }
+        .rs-public-lower { max-width: 1050px; margin: 0 auto; padding: 0 34px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .rs-public-notice, .rs-public-help { border-radius: 10px; padding: 20px; border: 1px solid ${C.greyLine}; background: ${C.white}; }
+        .rs-public-notice { border-left: 4px solid ${C.gold}; }
+        .rs-public-notice h2 { font-size: 15px; margin: 0; }
+        .rs-notice-badge { color: #936615; background: ${C.goldBg}; padding: 5px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+        .rs-public-notice p, .rs-public-help p { color: ${C.grey}; line-height: 1.55; font-size: 11.5px; margin: 13px 0; }
+        .rs-public-notice button { border: 0; background: none; color: ${C.navy}; padding: 0; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .rs-public-help { display: flex; align-items: center; gap: 13px; }
+        .rs-help-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 9px; background: ${C.cream}; color: ${C.navy}; flex: 0 0 auto; }
+        .rs-public-help h3 { margin: 5px 0 0; font-family: Poppins, sans-serif; font-size: 15px; }
+        .rs-public-help p { margin-bottom: 0; }
+        .rs-public-help > svg { margin-left: auto; color: ${C.grey}; flex: 0 0 auto; }
+        .rs-public-footer { display: flex; justify-content: space-between; gap: 12px; padding: 17px 34px; border-top: 1px solid ${C.greyLine}; color: ${C.grey}; font-size: 10px; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
@@ -2181,6 +2226,19 @@ export default function RationSetuApp() {
         @media (max-width: 640px) {
           .rs-page { padding: 12px 8px 20px; }
           .rs-shell { box-shadow: 0 6px 20px rgba(23,50,77,0.06); }
+          .rs-public-header { padding: 14px 18px; min-height: 68px; }
+          .rs-public-nav { display: none; }
+          .rs-public-brand { min-width: 0; }
+          .rs-public-actions button:not(.rs-public-login) { display: none; }
+          .rs-public-actions .rs-public-login { padding: 9px 10px; font-size: 10px; }
+          .rs-public-hero { display: block; padding: 42px 20px 30px; }
+          .rs-public-hero h1 { font-size: 32px; }
+          .rs-public-hero-panel { margin-top: 30px; }
+          .rs-public-section, .rs-public-lower { padding-left: 20px; padding-right: 20px; }
+          .rs-public-service-grid { grid-template-columns: 1fr 1fr; }
+          .rs-public-service-grid button { min-height: 145px; padding: 14px; }
+          .rs-public-lower { grid-template-columns: 1fr; }
+          .rs-public-footer { padding: 16px 20px; display: grid; }
         }
         @media (min-width: 640px) {
           .rs-shell.has-sidebar .rs-shell-scroll > div { max-width: 100% !important; }
