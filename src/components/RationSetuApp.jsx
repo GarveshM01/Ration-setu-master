@@ -2046,7 +2046,7 @@ function StatBox({ label, value, accent }) {
 /* =========================================================================
    ADMIN DASHBOARD (secondary, kept concise)
    ========================================================================= */
-function AdminDashboard({ state }) {
+function AdminDashboard({ state, dispatch }) {
   const { t } = useT();
   const noShows = state.queue.filter((q) => q.status === "noshow").length;
   return (
@@ -2583,7 +2583,7 @@ export default function RationSetuApp() {
           {role === "beneficiary" && <BeneficiaryApp state={state} dispatch={dispatch} lang={lang} setLang={setLang} />}
           {role === "dealer" && !dealerAuthenticated && <DealerLoginScreen onLogin={() => setDealerAuthenticated(true)} />}
           {role === "dealer" && dealerAuthenticated && <DealerDashboard state={state} dispatch={dispatch} lang={lang} onLogout={() => setDealerAuthenticated(false)} />}
-          {role === "admin" && <AdminDashboard state={state} />}
+          {role === "admin" && <AdminDashboard state={state} dispatch={dispatch} />}
         </div>
 
         <p style={{ textAlign: "center", fontSize: 11, color: C.grey, marginTop: 22 }}>
