@@ -627,6 +627,7 @@ function Btn({ children, onClick, variant = "primary", icon: Icon, full, disable
 function Card({ children, style, onClick }) {
   return (
     <div
+      className="rs-card"
       onClick={onClick}
       style={{
         background: C.white, borderRadius: 18, padding: 16,
@@ -767,11 +768,43 @@ import LOGIN_BG from "../assets/login-bg.png";
    Tablet/Desktop: becomes a centered, softly-rounded content column —
    NOT a phone mockup — so the site reads as a proper responsive web app.
    ========================================================================= */
-function AppShell({ children, footer }) {
+function SideNav({ active, onNav, onLogout }) {
+  const { t } = useT();
+  const items = [
+    { key: "home", label: t(dict.home), icon: Home },
+    { key: "queue", label: t(dict.queue), icon: Users },
+    { key: "notif", label: t(dict.notif), icon: Bell },
+    { key: "profile", label: t(dict.profile), icon: User },
+  ];
   return (
-    <div className="rs-shell">
-      <div className="rs-shell-scroll">{children}</div>
-      {footer && <div className="rs-shell-footer">{footer}</div>}
+    <aside className="rs-sidebar">
+      <div className="rs-sidebar-brand"><Logo size={36} /><span className="rs-sidebar-kicker">BENEFICIARY PORTAL</span></div>
+      <nav className="rs-sidebar-nav" aria-label="Primary navigation">
+        <p className="rs-sidebar-label">Workspace</p>
+        {items.map((item) => {
+          const Icon = item.icon;
+          return <button key={item.key} className={`rs-sidebar-item ${active === item.key ? "is-active" : ""}`} onClick={() => onNav(item.key)}>
+            <Icon size={18} /><span>{item.label}</span>
+            {item.key === "notif" && <span className="rs-sidebar-dot" />}
+          </button>;
+        })}
+      </nav>
+      <div className="rs-sidebar-bottom">
+        <div className="rs-sidebar-help"><ShieldCheck size={17} /><div><b>Secure access</b><span>Prototype environment</span></div></div>
+        <button className="rs-sidebar-logout" onClick={onLogout}><LogOut size={16} /> {t(dict.logout)}</button>
+      </div>
+    </aside>
+  );
+}
+
+function AppShell({ children, footer, sidebar }) {
+  return (
+    <div className={`rs-shell ${sidebar ? "has-sidebar" : ""}`}>
+      {sidebar}
+      <div className="rs-shell-main">
+        <div className="rs-shell-scroll">{children}</div>
+        {footer && <div className="rs-shell-footer">{footer}</div>}
+      </div>
     </div>
   );
 }
@@ -974,7 +1007,14 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
         </button>
       </div>
 
-      <p style={{ fontSize: 16, color: C.navy, fontWeight: 600, margin: "18px 0 14px" }}>{t(dict.namaste)}, सीमा जी 👋</p>
+      <div className="rs-home-hero">
+        <div>
+          <span className="rs-eyebrow">SEPTEMBER 2026 · SERVICE OVERVIEW</span>
+          <h1>{t(dict.namaste)}, सीमा जी <span aria-hidden="true">👋</span></h1>
+          <p>{t(dict.usp)}</p>
+        </div>
+        <div className="rs-hero-mark"><Wheat size={25} /></div>
+      </div>
 
       <Card style={{ marginBottom: 12 }}>
         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.grey, letterSpacing: 0.3, margin: "0 0 8px" }}>{t(dict.myRationCard)}</p>
@@ -1685,8 +1725,9 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
       content = null;
   }
 
+  const sidebar = showNav ? <SideNav active={navTab} onNav={goTab} onLogout={() => setScreen("splash")} /> : null;
   return (
-    <AppShell footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
+    <AppShell sidebar={sidebar} footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
       {content}
     </AppShell>
   );
@@ -2002,8 +2043,33 @@ export default function RationSetuApp() {
           border: 1px solid rgba(220,228,236,0.9);
           box-shadow: 0 14px 40px rgba(23,50,77,0.08);
         }
+        .rs-shell-main { min-width: 0; flex: 1; display: flex; flex-direction: column; }
         .rs-shell-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .rs-shell-footer { flex-shrink: 0; }
+        .rs-sidebar { display: none; }
+        .rs-sidebar-brand { padding: 30px 24px 26px; border-bottom: 1px solid rgba(220,228,236,0.8); }
+        .rs-sidebar-brand > div { margin-bottom: 14px; }
+        .rs-sidebar-kicker, .rs-sidebar-label { display: block; color: ${C.grey}; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+        .rs-sidebar-nav { padding: 25px 14px; }
+        .rs-sidebar-label { padding: 0 12px; margin: 0 0 10px; }
+        .rs-sidebar-item { width: 100%; border: 0; background: transparent; color: ${C.grey}; display: flex; align-items: center; gap: 12px; padding: 12px 13px; border-radius: 10px; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; margin-bottom: 4px; position: relative; }
+        .rs-sidebar-item:hover { background: ${C.cream}; color: ${C.navy}; }
+        .rs-sidebar-item.is-active { color: ${C.navy}; background: #EAF1F8; box-shadow: inset 3px 0 0 ${C.green}; }
+        .rs-sidebar-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.gold}; margin-left: auto; }
+        .rs-sidebar-bottom { margin-top: auto; padding: 18px 14px 20px; }
+        .rs-sidebar-help { display: flex; gap: 9px; align-items: flex-start; padding: 12px; border-radius: 10px; background: ${C.cream}; color: ${C.navy}; margin-bottom: 14px; }
+        .rs-sidebar-help div { display: grid; gap: 2px; }
+        .rs-sidebar-help b { font-size: 11px; }
+        .rs-sidebar-help span { color: ${C.grey}; font-size: 10px; }
+        .rs-sidebar-logout { border: 0; background: transparent; color: ${C.grey}; display: flex; align-items: center; gap: 9px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .rs-card { transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+        .rs-card:hover { border-color: #C8D5E2 !important; box-shadow: 0 8px 24px rgba(23,50,77,0.08) !important; }
+        .rs-home-hero { margin: 28px 0 20px; padding: 24px 26px; border-radius: 16px; color: ${C.white}; background: linear-gradient(115deg, ${C.navyDeep}, ${C.navy}); display: flex; align-items: center; justify-content: space-between; gap: 20px; position: relative; overflow: hidden; }
+        .rs-home-hero:after { content: ""; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -70px; top: -100px; background: rgba(22,128,92,.28); }
+        .rs-home-hero h1 { margin: 7px 0 5px; font-family: Poppins, sans-serif; font-size: clamp(21px, 3vw, 28px); line-height: 1.2; letter-spacing: -.02em; }
+        .rs-home-hero p { margin: 0; font-size: 12px; color: rgba(255,255,255,.7); }
+        .rs-eyebrow { color: #B6E5D2; font-size: 9.5px; font-weight: 800; letter-spacing: .13em; }
+        .rs-hero-mark { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #F7CB6E; position: relative; z-index: 1; flex: 0 0 auto; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
@@ -2014,6 +2080,11 @@ export default function RationSetuApp() {
             min-height: 640px;
             max-height: none;
           }
+          .rs-shell.has-sidebar { flex-direction: row; }
+          .rs-shell.has-sidebar .rs-sidebar { width: 218px; flex: 0 0 218px; display: flex; flex-direction: column; background: ${C.white}; border-right: 1px solid ${C.greyLine}; }
+          .rs-shell.has-sidebar .rs-shell-main { min-height: 640px; }
+          .rs-shell.has-sidebar .rs-shell-scroll { padding: 0 6px; }
+          .rs-shell.has-sidebar .rs-shell-footer { display: none; }
         }
         @media (min-width: 1024px) {
           .rs-shell {
@@ -2033,6 +2104,10 @@ export default function RationSetuApp() {
         @media (max-width: 640px) {
           .rs-page { padding: 12px 8px 20px; }
           .rs-shell { box-shadow: 0 6px 20px rgba(23,50,77,0.06); }
+        }
+        @media (min-width: 640px) {
+          .rs-shell.has-sidebar .rs-shell-scroll > div { max-width: 100% !important; }
+          .rs-shell.has-sidebar .rs-shell-scroll > div > div:first-child { padding-left: 36px !important; padding-right: 36px !important; }
         }
 
         button { font-family: Inter, 'Noto Sans Devanagari', sans-serif; }
