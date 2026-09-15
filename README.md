@@ -87,9 +87,20 @@ Supabase and stores its shared activity in the browser demo state. To persist
 message activity in Supabase, copy `.env.example` to `.env.local` and set:
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_URL=https://occnwieivslpjagdhemi.supabase.co
 VITE_SUPABASE_ANON_KEY=your-publishable-or-anon-key
 ```
+
+`VITE_SUPABASE_URL` must be the base project URL above, not the REST endpoint
+(`https://occnwieivslpjagdhemi.supabase.co/rest/v1/`). The repository appends
+`/rest/v1/whatsapp_messages` itself.
+
+For local development, put the publishable/anon key in an untracked
+`.env.local` file. For Vercel, open **Project Settings → Environment
+Variables**, add `VITE_SUPABASE_URL` with the base URL and
+`VITE_SUPABASE_ANON_KEY` with the publishable/anon key for the required
+environments, then redeploy. Do not request, commit, or expose a service-role
+key in a browser build.
 
 Only a publishable/anon key belongs in frontend environment variables. Never
 put a Supabase service-role key in `.env.local`, source code, or a deployed
