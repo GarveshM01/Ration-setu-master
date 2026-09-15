@@ -138,6 +138,7 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppi
 
 /* Official Ration Setu logo (provided asset, unmodified) */
 import RATION_SETU_LOGO from "../assets/ration-setu-logo.png";
+import { isSupabaseConfigured, saveWhatsAppMessage } from "../services/whatsappRepository.js";
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
@@ -431,6 +432,10 @@ const initialState = {
     },
   ],
   complaints: [],
+  whatsappMessages: [
+    { id: "wa-demo-1", contactId: "wa-02", contact: "Rajesh Kumar", number: "+91 98123 45670", message: "Your token A121 is now in queue.", status: "delivered", sentAt: "10:14 AM", persistence: "demo" },
+    { id: "wa-demo-2", contactId: "wa-04", contact: "Kavita Bai", number: "+91 97654 32109", message: "Please carry your ration card.", status: "queued", sentAt: "09:58 AM", persistence: "demo" },
+  ],
   completedCount: 34,
   totalToday: 42,
   avgWaitMin: 18,
@@ -455,6 +460,7 @@ function loadInitialState() {
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications : initialState.notifications,
       history: Array.isArray(parsed.history) ? parsed.history : initialState.history,
       complaints: Array.isArray(parsed.complaints) ? parsed.complaints : initialState.complaints,
+      whatsappMessages: Array.isArray(parsed.whatsappMessages) ? parsed.whatsappMessages : initialState.whatsappMessages,
       auditLog: Array.isArray(parsed.auditLog) ? parsed.auditLog : initialState.auditLog,
     };
   } catch {
@@ -480,6 +486,10 @@ function auditEntry(event, detail) {
 
 function reducer(state, action) {
   switch (action.type) {
+    case "SEND_WHATSAPP": {
+      const message = { ...action.message, status: action.message.status || "sent" };
+      return { ...state, whatsappMessages: [message, ...(state.whatsappMessages || [])].slice(0, 50) };
+    }
     case "BOOK_ONLINE": {
       if (state.queue.some((q) => q.id === "A124")) return state;
       const time = "10:30 AM";
@@ -1589,6 +1599,7 @@ function LiveQueueScreen({ state, lang }) {
 function NotifScreen({ state }) {
   const { t, lang } = useT();
   const iconFor = (i) => (i === "check" ? CheckCircle2 : Bell);
+  const whatsapp = state.whatsappMessages || [];
   return (
     <div>
       <ScreenHeader title={t(dict.notifTitle)} />
@@ -1610,6 +1621,21 @@ function NotifScreen({ state }) {
             </Card>
           );
         })}
+        {whatsapp.map((item) => (
+          <Card key={item.id} style={{ marginBottom: 10, display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#E8EEF7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Phone size={16} color={C.navy} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 13.5, color: C.navy }}>WhatsApp demo · {item.contact}</p>
+                <span className={`rs-wa-status ${item.status}`}>{item.status}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, color: C.grey, lineHeight: 1.4 }}>{item.message}</p>
+              <p style={{ margin: "5px 0 0", fontSize: 10.5, color: C.grey }}>{item.number} · {item.sentAt}</p>
+            </div>
+          </Card>
+        ))}
       </div>
     </div>
   );
@@ -2002,7 +2028,7 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
           </div>
         </div>
       </div>
-      <WhatsAppMockService />
+      <WhatsAppMockService state={state} dispatch={dispatch} />
     </div>
     </DealerPortalFrame>
   );
@@ -2053,7 +2079,7 @@ function AdminDashboard({ state }) {
           {t({ hi: "AI अंतर्दृष्टियाँ इस डेमो में सिम्युलेटेड हैं, वास्तविक प्रशिक्षित मॉडल से नहीं।", en: "AI insights in this demo are simulated, not from a real trained model." })}
         </p>
       </div>
-      <WhatsAppMockService />
+      <WhatsAppMockService state={state} dispatch={dispatch} />
     </div>
   );
 }
@@ -2073,30 +2099,33 @@ function InsightCard({ icon: Icon, color, title, body }) {
   );
 }
 
-function WhatsAppMockService() {
+function WhatsAppMockService({ state, dispatch }) {
   const [selectedId, setSelectedId] = useState(MOCK_WHATSAPP_CONTACTS[0].id);
   const [message, setMessage] = useState("");
   const [template, setTemplate] = useState("");
-  const [activity, setActivity] = useState([
-    { id: 1, contact: "Rajesh Kumar", number: "+91 98123 45670", message: "Your token A121 is now in queue.", status: "Delivered", time: "10:14 AM" },
-    { id: 2, contact: "Kavita Bai", number: "+91 97654 32109", message: "Please carry your ration card.", status: "Queued", time: "09:58 AM" },
-  ]);
+  const [persistenceError, setPersistenceError] = useState("");
   const selected = MOCK_WHATSAPP_CONTACTS.find((contact) => contact.id === selectedId);
+  const activity = state.whatsappMessages || [];
   const templates = {
     queue: `Your token ${selected.token} is confirmed. We will notify you when your turn is approaching.`,
     reminder: "Reminder: please carry your ration card and visit during the assigned distribution window.",
     complete: `Distribution for token ${selected.token} has been recorded. Thank you.`,
   };
 
-  const send = () => {
+  const send = async () => {
     const nextMessage = message.trim();
     if (!selected || !nextMessage) return;
-    setActivity((current) => [
-      { id: Date.now(), contact: selected.name, number: selected.number, message: nextMessage, status: "Sent", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
-      ...current,
-    ]);
+    const sentAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const nextRecord = { id: `wa-${Date.now()}`, contactId: selected.id, contact: selected.name, number: selected.number, message: nextMessage, status: "sent", sentAt };
+    dispatch({ type: "SEND_WHATSAPP", message: nextRecord });
+    setPersistenceError("");
     setMessage("");
     setTemplate("");
+    try {
+      await saveWhatsAppMessage(nextRecord);
+    } catch (error) {
+      setPersistenceError(isSupabaseConfigured ? "Supabase persistence is unavailable; the message remains in demo state." : "Demo mode active; message is stored locally.");
+    }
   };
 
   return (
@@ -2110,7 +2139,7 @@ function WhatsAppMockService() {
           <div className="rs-wa-panel-title"><b>Sample contacts</b><span>{MOCK_WHATSAPP_CONTACTS.length} contacts</span></div>
           <div className="rs-wa-contact-list">
             {MOCK_WHATSAPP_CONTACTS.map((contact) => (
-              <button key={contact.id} className={selectedId === contact.id ? "is-selected" : ""} onClick={() => setSelectedId(contact.id)} type="button">
+              <button key={contact.id} className={selectedId === contact.id ? "is-selected" : ""} aria-pressed={selectedId === contact.id} onClick={() => setSelectedId(contact.id)} type="button">
                 <span className="rs-wa-avatar">{contact.name.charAt(0)}</span><span><b>{contact.name}</b><small>{contact.number}</small></span><em>{contact.token}</em>
               </button>
             ))}
@@ -2127,11 +2156,12 @@ function WhatsAppMockService() {
             <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={240} rows={5} placeholder="Type a demo notification..." />
           </label>
           <div className="rs-wa-compose-footer"><span>{message.length}/240 characters · {selected.number}</span><button type="button" onClick={send} disabled={!message.trim()}><Phone size={15} /> Send mock message</button></div>
+          {persistenceError && <p className="rs-wa-persistence-note" role="status">{persistenceError}</p>}
         </div>
       </div>
       <div className="rs-wa-activity">
         <div className="rs-wa-panel-title"><b>Recent message activity</b><span>Simulation status only</span></div>
-        <div className="rs-table-scroll"><table><thead><tr><th>Contact</th><th>Message</th><th>Status</th><th>Time</th></tr></thead><tbody>{activity.map((item) => <tr key={item.id}><td><b>{item.contact}</b><small>{item.number}</small></td><td>{item.message}</td><td><span className={`rs-wa-status ${item.status.toLowerCase()}`}>{item.status}</span></td><td>{item.time}</td></tr>)}</tbody></table></div>
+        <div className="rs-table-scroll"><table><thead><tr><th>Contact</th><th>Message</th><th>Status</th><th>Time</th></tr></thead><tbody>{activity.map((item) => <tr key={item.id}><td><b>{item.contact}</b><small>{item.number}</small></td><td>{item.message}</td><td><span className={`rs-wa-status ${item.status.toLowerCase()}`}>{item.status}</span></td><td>{item.sentAt}</td></tr>)}</tbody></table></div>
       </div>
     </section>
   );
@@ -2289,7 +2319,8 @@ export default function RationSetuApp() {
         .rs-wa-contact-list { max-height: 332px; overflow-y: auto; padding: 7px; }
         .rs-wa-contact-list button { width: 100%; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 7px; padding: 9px; background: transparent; text-align: left; cursor: pointer; color: ${C.navy}; }
         .rs-wa-contact-list button:hover, .rs-wa-contact-list button.is-selected { background: #EEF2F7; }
-        .rs-wa-contact-list button.is-selected { box-shadow: inset 3px 0 0 ${C.gold}; }
+        .rs-wa-contact-list button.is-selected { background: #DCE8F6; box-shadow: inset 4px 0 0 ${C.navy}; }
+        .rs-wa-contact-list button:focus-visible { outline: 2px solid ${C.gold}; outline-offset: -2px; }
         .rs-wa-contact-list button > span:nth-child(2) { min-width: 0; flex: 1; display: grid; gap: 2px; }
         .rs-wa-contact-list b { font-size: 11.5px; }
         .rs-wa-contact-list small, .rs-wa-activity td small { color: ${C.grey}; font-size: 9.5px; }
@@ -2302,6 +2333,7 @@ export default function RationSetuApp() {
         .rs-wa-compose-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: ${C.grey}; font-size: 10px; }
         .rs-wa-compose-footer button { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 7px; background: ${C.navy}; color: ${C.white}; padding: 10px 13px; cursor: pointer; font-size: 10.5px; font-weight: 800; }
         .rs-wa-compose-footer button:disabled { opacity: .45; cursor: not-allowed; }
+        .rs-wa-persistence-note { margin: 10px 0 0; color: #8A5D0B; font-size: 10px; }
         .rs-wa-activity { border-top: 1px solid ${C.greyLine}; }
         .rs-wa-activity table { width: 100%; border-collapse: collapse; min-width: 540px; }
         .rs-wa-activity th { background: #F5F7FA; color: ${C.grey}; font-size: 10px; text-align: left; padding: 10px 18px; }
