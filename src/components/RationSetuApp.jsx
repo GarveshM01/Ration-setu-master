@@ -833,8 +833,21 @@ function SideNav({ active, onNav, onLogout }) {
   );
 }
 
-function AppShell({ children, footer, sidebar }) {
+function AppShell({ children, footer, sidebar, active, onNav, state }) {
   const { t } = useT();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readIds, setReadIds] = useState([]);
+  const notificationItems = [
+    ...(state?.notifications || []).map((item, index) => ({ ...item, id: `notice-${index}`, label: item.title?.en || "Notification", detail: item.body?.en || "" })),
+    ...(state?.whatsappMessages || []).map((item) => ({ id: item.id, label: `WhatsApp demo · ${item.contact}`, detail: item.message, status: item.status, sentAt: item.sentAt })),
+  ];
+  const unreadCount = notificationItems.filter((item) => !readIds.includes(item.id)).length;
+  useEffect(() => {
+    if (!notificationsOpen) return undefined;
+    const closeOnEscape = (event) => { if (event.key === "Escape") setNotificationsOpen(false); };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [notificationsOpen]);
   return (
     <div className={`rs-shell ${sidebar ? "has-sidebar" : ""}`}>
       {sidebar}
@@ -847,7 +860,33 @@ function AppShell({ children, footer, sidebar }) {
             </div>
             <div className="rs-portal-header-actions">
               <span className="rs-service-status"><span className="rs-status-dot" /> Services operational</span>
-              <button className="rs-header-icon" aria-label="Notifications"><Bell size={17} /></button>
+              <div className="rs-notification-control">
+                <button className="rs-header-icon" type="button" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`} aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen((open) => !open)}>
+                  <Bell size={17} />{unreadCount > 0 && <span className="rs-notification-count">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                </button>
+                {notificationsOpen && (
+                  <>
+                    <button className="rs-notification-backdrop" aria-label="Close notifications" type="button" onClick={() => setNotificationsOpen(false)} />
+                    <section className="rs-notification-popover" aria-label="Notification panel">
+                      <div className="rs-notification-popover-head"><b>Notifications</b><span>{unreadCount} unread</span></div>
+                      <div className="rs-notification-popover-actions">
+                        <button type="button" onClick={() => setReadIds(notificationItems.map((item) => item.id))}>Mark all as read</button>
+                        <button type="button" onClick={() => setNotificationsOpen(false)}>Close</button>
+                      </div>
+                      <div className="rs-notification-list">
+                        {notificationItems.length === 0 && <p className="rs-notification-empty">No notifications</p>}
+                        {notificationItems.slice(0, 8).map((item) => (
+                          <button type="button" key={item.id} className={`rs-notification-item ${readIds.includes(item.id) ? "is-read" : ""}`} onClick={() => setReadIds((ids) => ids.includes(item.id) ? ids : [...ids, item.id])}>
+                            <span className="rs-notification-item-icon"><Bell size={14} /></span>
+                            <span><b>{item.label}</b><small>{item.detail}</small><em>{item.sentAt || item.status || "Current update"}</em></span>
+                          </button>
+                        ))}
+                      </div>
+                      <button type="button" className="rs-notification-view-all" onClick={() => { setNotificationsOpen(false); onNav?.("notif"); }}>View all notifications</button>
+                    </section>
+                  </>
+                )}
+              </div>
               <div className="rs-header-user"><span className="rs-avatar">S</span><span>Seema Devi</span></div>
             </div>
           </header>
@@ -855,10 +894,9 @@ function AppShell({ children, footer, sidebar }) {
         {sidebar && (
           <nav className="rs-service-nav" aria-label="Service navigation">
             <span className="rs-service-nav-label">Citizen services</span>
-            <button className="is-current" type="button">Overview</button>
-            <button type="button">Ration card</button>
-            <button type="button">Distribution history</button>
-            <button type="button">Support</button>
+            {[["home", "Overview"], ["entitlement", "Ration card"], ["profile", "Distribution history"], ["complaints", "Support"]].map(([key, label]) => (
+              <button key={key} className={active === key ? "is-current" : ""} type="button" onClick={() => onNav?.(key)}>{label}</button>
+            ))}
           </nav>
         )}
         <div className="rs-shell-scroll">{children}</div>
@@ -1846,7 +1884,7 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
 
   const sidebar = showNav ? <SideNav active={navTab} onNav={goTab} onLogout={() => setScreen("splash")} /> : null;
   return (
-    <AppShell sidebar={sidebar} footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
+    <AppShell state={state} active={screen} onNav={navFromHome} sidebar={sidebar} footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
       {content}
     </AppShell>
   );
@@ -2679,6 +2717,26 @@ export default function RationSetuApp() {
         .rs-portal-header-actions, .rs-ops-header-actions { display: flex; align-items: center; gap: 16px; }
         .rs-portal-header .rs-service-status { color: #c6d2e8; }
         .rs-header-icon { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 7px; background: rgba(255,255,255,.08); color: #fff; cursor: pointer; }
+        .rs-notification-control { position: relative; }
+        .rs-notification-count { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; display: grid; place-items: center; border-radius: 99px; background: ${C.gold}; color: ${C.navyDeep}; font-size: 9px; font-weight: 800; border: 2px solid ${C.navyDeep}; }
+        .rs-notification-backdrop { position: fixed; inset: 0; z-index: 20; border: 0; background: transparent; cursor: default; }
+        .rs-notification-popover { position: absolute; z-index: 21; top: 42px; right: 0; width: min(360px, calc(100vw - 32px)); overflow: hidden; border: 1px solid ${C.greyLine}; border-radius: 10px; background: ${C.white}; color: ${C.navy}; box-shadow: 0 16px 32px rgba(7,24,39,.24); }
+        .rs-notification-popover-head, .rs-notification-popover-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; }
+        .rs-notification-popover-head { border-bottom: 1px solid ${C.greyLine}; font-size: 12px; }
+        .rs-notification-popover-head span { color: ${C.grey}; font-size: 10px; }
+        .rs-notification-popover-actions { justify-content: flex-start; background: ${C.surfaceMuted}; }
+        .rs-notification-popover-actions button, .rs-notification-view-all { border: 0; background: transparent; color: ${C.indigo}; cursor: pointer; font-size: 10px; font-weight: 800; padding: 0; }
+        .rs-notification-list { max-height: 300px; overflow-y: auto; }
+        .rs-notification-item { width: 100%; display: flex; gap: 9px; align-items: flex-start; border: 0; border-bottom: 1px solid ${C.greyLine}; background: ${C.white}; color: ${C.navy}; text-align: left; padding: 11px 14px; cursor: pointer; }
+        .rs-notification-item:hover, .rs-notification-item:focus-visible { background: ${C.goldBg}; outline: none; }
+        .rs-notification-item.is-read { opacity: .62; }
+        .rs-notification-item-icon { display: grid; place-items: center; width: 25px; height: 25px; flex: 0 0 auto; border-radius: 7px; background: ${C.goldBg}; color: ${C.gold}; }
+        .rs-notification-item > span:last-child { min-width: 0; display: grid; gap: 3px; }
+        .rs-notification-item b { font-size: 10.5px; }
+        .rs-notification-item small { color: ${C.grey}; font-size: 10px; line-height: 1.35; }
+        .rs-notification-item em { color: ${C.grey}; font-size: 9px; font-style: normal; }
+        .rs-notification-empty { color: ${C.grey}; font-size: 11px; text-align: center; padding: 20px; }
+        .rs-notification-view-all { width: 100%; padding: 11px 14px; border-top: 1px solid ${C.greyLine}; text-align: left; }
         .rs-header-user { display: inline-flex; align-items: center; gap: 8px; color: #e7edf8; font-size: 11px; font-weight: 700; }
         .rs-avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: ${C.navyDeep}; background: ${C.gold}; font-size: 11px; font-weight: 800; }
         .rs-service-nav { min-height: 42px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid ${C.greyLine}; background: ${C.white}; }
