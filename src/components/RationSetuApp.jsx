@@ -376,6 +376,19 @@ const initialQueue = [
   { id: "A123", mode: "qr", status: "waiting", time: "10:10", name: "कविता बाई / Kavita Bai" },
 ];
 
+const MOCK_WHATSAPP_CONTACTS = [
+  { id: "wa-01", name: "Seema Devi", number: "+91 98765 43210", token: "A124" },
+  { id: "wa-02", name: "Rajesh Kumar", number: "+91 98123 45670", token: "A121" },
+  { id: "wa-03", name: "Mohit Verma", number: "+91 98987 61234", token: "A122" },
+  { id: "wa-04", name: "Kavita Bai", number: "+91 97654 32109", token: "A123" },
+  { id: "wa-05", name: "Imran Khan", number: "+91 98220 14567", token: "A125" },
+  { id: "wa-06", name: "Sunita Devi", number: "+91 97531 86420", token: "A120" },
+  { id: "wa-07", name: "Aarav Sharma", number: "+91 99001 22334", token: "A126" },
+  { id: "wa-08", name: "Pooja Yadav", number: "+91 98450 77889", token: "A127" },
+  { id: "wa-09", name: "Ramesh Patel", number: "+91 97000 11223", token: "A128" },
+  { id: "wa-10", name: "Kamla Bai", number: "+91 98670 44556", token: "A129" },
+];
+
 /* Digital e-Ration Card demo data (Requirement: keep realistic, government-service-like) */
 const CARD_INFO = {
   cardNo: "MP-45-1234-5678",
@@ -1989,6 +2002,7 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
           </div>
         </div>
       </div>
+      <WhatsAppMockService />
     </div>
     </DealerPortalFrame>
   );
@@ -2039,6 +2053,7 @@ function AdminDashboard({ state }) {
           {t({ hi: "AI अंतर्दृष्टियाँ इस डेमो में सिम्युलेटेड हैं, वास्तविक प्रशिक्षित मॉडल से नहीं।", en: "AI insights in this demo are simulated, not from a real trained model." })}
         </p>
       </div>
+      <WhatsAppMockService />
     </div>
   );
 }
@@ -2055,6 +2070,70 @@ function InsightCard({ icon: Icon, color, title, body }) {
       </div>
       <p style={{ margin: 0, fontSize: 12.5, color: C.grey, lineHeight: 1.4 }}>{body(lang)}</p>
     </Card>
+  );
+}
+
+function WhatsAppMockService() {
+  const [selectedId, setSelectedId] = useState(MOCK_WHATSAPP_CONTACTS[0].id);
+  const [message, setMessage] = useState("");
+  const [template, setTemplate] = useState("");
+  const [activity, setActivity] = useState([
+    { id: 1, contact: "Rajesh Kumar", number: "+91 98123 45670", message: "Your token A121 is now in queue.", status: "Delivered", time: "10:14 AM" },
+    { id: 2, contact: "Kavita Bai", number: "+91 97654 32109", message: "Please carry your ration card.", status: "Queued", time: "09:58 AM" },
+  ]);
+  const selected = MOCK_WHATSAPP_CONTACTS.find((contact) => contact.id === selectedId);
+  const templates = {
+    queue: `Your token ${selected.token} is confirmed. We will notify you when your turn is approaching.`,
+    reminder: "Reminder: please carry your ration card and visit during the assigned distribution window.",
+    complete: `Distribution for token ${selected.token} has been recorded. Thank you.`,
+  };
+
+  const send = () => {
+    const nextMessage = message.trim();
+    if (!selected || !nextMessage) return;
+    setActivity((current) => [
+      { id: Date.now(), contact: selected.name, number: selected.number, message: nextMessage, status: "Sent", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+      ...current,
+    ]);
+    setMessage("");
+    setTemplate("");
+  };
+
+  return (
+    <section className="rs-wa-module" aria-label="WhatsApp demo service">
+      <div className="rs-wa-heading">
+        <div><span className="rs-portal-breadcrumb">COMMUNICATIONS</span><h2>WhatsApp notifications</h2><p>Mock service for operational demos only. No real messages are sent.</p></div>
+        <span className="rs-demo-badge">DEMO / MOCK</span>
+      </div>
+      <div className="rs-wa-workspace">
+        <div className="rs-wa-contacts">
+          <div className="rs-wa-panel-title"><b>Sample contacts</b><span>{MOCK_WHATSAPP_CONTACTS.length} contacts</span></div>
+          <div className="rs-wa-contact-list">
+            {MOCK_WHATSAPP_CONTACTS.map((contact) => (
+              <button key={contact.id} className={selectedId === contact.id ? "is-selected" : ""} onClick={() => setSelectedId(contact.id)} type="button">
+                <span className="rs-wa-avatar">{contact.name.charAt(0)}</span><span><b>{contact.name}</b><small>{contact.number}</small></span><em>{contact.token}</em>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="rs-wa-composer">
+          <div className="rs-wa-panel-title"><b>Compose notification</b><span>Selected: {selected.name}</span></div>
+          <label>Quick message template
+            <select value={template} onChange={(event) => { setTemplate(event.target.value); setMessage(templates[event.target.value] || ""); }}>
+              <option value="">Select a template</option><option value="queue">Queue update</option><option value="reminder">Visit reminder</option><option value="complete">Distribution complete</option>
+            </select>
+          </label>
+          <label>Message
+            <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={240} rows={5} placeholder="Type a demo notification..." />
+          </label>
+          <div className="rs-wa-compose-footer"><span>{message.length}/240 characters · {selected.number}</span><button type="button" onClick={send} disabled={!message.trim()}><Phone size={15} /> Send mock message</button></div>
+        </div>
+      </div>
+      <div className="rs-wa-activity">
+        <div className="rs-wa-panel-title"><b>Recent message activity</b><span>Simulation status only</span></div>
+        <div className="rs-table-scroll"><table><thead><tr><th>Contact</th><th>Message</th><th>Status</th><th>Time</th></tr></thead><tbody>{activity.map((item) => <tr key={item.id}><td><b>{item.contact}</b><small>{item.number}</small></td><td>{item.message}</td><td><span className={`rs-wa-status ${item.status.toLowerCase()}`}>{item.status}</span></td><td>{item.time}</td></tr>)}</tbody></table></div>
+      </div>
+    </section>
   );
 }
 
@@ -2087,9 +2166,7 @@ export default function RationSetuApp() {
         /* ===== Responsive beneficiary app shell (replaces the old fixed phone-bezel mockup) ===== */
         .rs-page {
           padding: 24px 20px 30px;
-          background:
-            radial-gradient(circle at 12% 0%, rgba(22,128,92,0.07), transparent 28rem),
-            #F1F5F9 !important;
+          background: #F1F5F9 !important;
         }
         .rs-role-switch { flex-wrap: wrap; }
 
@@ -2199,6 +2276,40 @@ export default function RationSetuApp() {
         .rs-auth-code { letter-spacing: .32em; text-align: center; font-size: 18px; }
         .rs-auth-steps { display: flex; gap: 6px; justify-content: center; margin-top: 22px; }
         .rs-auth-steps > div { width: 7px; height: 7px; border-radius: 50%; }
+        .rs-wa-module { margin-top: 22px; border: 1px solid ${C.greyLine}; border-radius: 12px; background: ${C.white}; overflow: hidden; }
+        .rs-wa-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px; border-bottom: 1px solid ${C.greyLine}; }
+        .rs-wa-heading h2 { margin: 5px 0 4px; font-family: Poppins, sans-serif; color: ${C.navy}; font-size: 19px; }
+        .rs-wa-heading p { margin: 0; color: ${C.grey}; font-size: 11.5px; }
+        .rs-demo-badge { flex: 0 0 auto; color: #8A5D0B; background: ${C.goldBg}; border: 1px solid #EBCB8A; border-radius: 5px; padding: 5px 8px; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+        .rs-wa-workspace { display: grid; grid-template-columns: minmax(220px, .85fr) 1.15fr; gap: 0; }
+        .rs-wa-contacts { border-right: 1px solid ${C.greyLine}; }
+        .rs-wa-composer { padding: 20px 22px; }
+        .rs-wa-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px; color: ${C.navy}; border-bottom: 1px solid ${C.greyLine}; font-size: 12px; }
+        .rs-wa-panel-title span { color: ${C.grey}; font-size: 10px; font-weight: 500; }
+        .rs-wa-contact-list { max-height: 332px; overflow-y: auto; padding: 7px; }
+        .rs-wa-contact-list button { width: 100%; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 7px; padding: 9px; background: transparent; text-align: left; cursor: pointer; color: ${C.navy}; }
+        .rs-wa-contact-list button:hover, .rs-wa-contact-list button.is-selected { background: #EEF2F7; }
+        .rs-wa-contact-list button.is-selected { box-shadow: inset 3px 0 0 ${C.gold}; }
+        .rs-wa-contact-list button > span:nth-child(2) { min-width: 0; flex: 1; display: grid; gap: 2px; }
+        .rs-wa-contact-list b { font-size: 11.5px; }
+        .rs-wa-contact-list small, .rs-wa-activity td small { color: ${C.grey}; font-size: 9.5px; }
+        .rs-wa-contact-list em { color: ${C.grey}; font-size: 10px; font-style: normal; font-weight: 800; }
+        .rs-wa-avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: ${C.navy}; color: ${C.white}; font-size: 11px; font-weight: 800; }
+        .rs-wa-composer .rs-wa-panel-title { padding: 0 0 14px; margin-bottom: 16px; }
+        .rs-wa-composer label { display: grid; gap: 6px; color: ${C.grey}; font-size: 10.5px; font-weight: 700; margin-bottom: 14px; }
+        .rs-wa-composer select, .rs-wa-composer textarea { width: 100%; box-sizing: border-box; border: 1px solid ${C.greyLine}; border-radius: 7px; padding: 10px; background: ${C.white}; color: ${C.navy}; font-size: 12px; resize: vertical; }
+        .rs-wa-composer select:focus, .rs-wa-composer textarea:focus { outline: 2px solid rgba(217,154,43,.25); border-color: ${C.gold}; }
+        .rs-wa-compose-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: ${C.grey}; font-size: 10px; }
+        .rs-wa-compose-footer button { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 7px; background: ${C.navy}; color: ${C.white}; padding: 10px 13px; cursor: pointer; font-size: 10.5px; font-weight: 800; }
+        .rs-wa-compose-footer button:disabled { opacity: .45; cursor: not-allowed; }
+        .rs-wa-activity { border-top: 1px solid ${C.greyLine}; }
+        .rs-wa-activity table { width: 100%; border-collapse: collapse; min-width: 540px; }
+        .rs-wa-activity th { background: #F5F7FA; color: ${C.grey}; font-size: 10px; text-align: left; padding: 10px 18px; }
+        .rs-wa-activity td { color: ${C.navy}; font-size: 10.5px; padding: 11px 18px; border-top: 1px solid ${C.greyLine}; vertical-align: top; }
+        .rs-wa-activity td:first-child { display: grid; gap: 2px; }
+        .rs-wa-status { display: inline-block; border-radius: 99px; padding: 4px 7px; font-size: 9px; font-weight: 800; }
+        .rs-wa-status.sent, .rs-wa-status.delivered { background: #E8EEF7; color: ${C.navy}; }
+        .rs-wa-status.queued { background: ${C.goldBg}; color: #8A5D0B; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
@@ -2246,6 +2357,13 @@ export default function RationSetuApp() {
           .rs-public-service-grid button { min-height: 145px; padding: 14px; }
           .rs-public-lower { grid-template-columns: 1fr; }
           .rs-public-footer { padding: 16px 20px; display: grid; }
+          .rs-wa-heading { padding: 18px; }
+          .rs-wa-workspace { grid-template-columns: 1fr; }
+          .rs-wa-contacts { border-right: 0; border-bottom: 1px solid ${C.greyLine}; }
+          .rs-wa-contact-list { display: flex; overflow-x: auto; max-height: none; gap: 6px; }
+          .rs-wa-contact-list button { min-width: 150px; }
+          .rs-wa-composer { padding: 18px; }
+          .rs-wa-compose-footer { align-items: flex-end; flex-direction: column; }
         }
         @media (min-width: 640px) {
           .rs-shell.has-sidebar .rs-shell-scroll > div { max-width: 100% !important; }
