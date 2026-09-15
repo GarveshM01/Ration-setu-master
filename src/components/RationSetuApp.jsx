@@ -142,19 +142,19 @@ import { isSupabaseConfigured, saveWhatsAppMessage } from "../services/whatsappR
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
-  navy: "#182B52",
-  navyDeep: "#101D3B",
-  indigo: "#314A8A",
-  bg: "#F4F6FA",
-  cream: "#E9EEF7",
-  green: "#B87512",
-  greenBg: "#FFF4DC",
-  gold: "#D99A2B",
-  goldBg: "#FFF4DC",
+  navy: "#12304A",
+  navyDeep: "#0B2239",
+  indigo: "#234E70",
+  bg: "#EEF3F7",
+  cream: "#F7F8FA",
+  green: "#138A5B",
+  greenBg: "#E8F5EF",
+  gold: "#E87722",
+  goldBg: "#FFF1E8",
   red: "#B9404A",
   redBg: "#FCEAED",
-  grey: "#59677F",
-  greyLine: "#D7DFEC",
+  grey: "#425466",
+  greyLine: "#CBD5DF",
   white: "#FFFFFF",
 };
 
@@ -2196,7 +2196,7 @@ export default function RationSetuApp() {
         /* ===== Responsive beneficiary app shell (replaces the old fixed phone-bezel mockup) ===== */
         .rs-page {
           padding: 24px 20px 30px;
-          background: #F1F5F9 !important;
+          background: ${C.bg} !important;
         }
         .rs-role-switch { flex-wrap: wrap; }
 
@@ -2220,7 +2220,7 @@ export default function RationSetuApp() {
         .rs-sidebar-label { padding: 0 12px; margin: 0 0 10px; }
         .rs-sidebar-item { width: 100%; border: 0; background: transparent; color: ${C.grey}; display: flex; align-items: center; gap: 12px; padding: 12px 13px; border-radius: 10px; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; margin-bottom: 4px; position: relative; }
         .rs-sidebar-item:hover { background: ${C.cream}; color: ${C.navy}; }
-        .rs-sidebar-item.is-active { color: ${C.navy}; background: #EAF1F8; box-shadow: inset 3px 0 0 ${C.green}; }
+        .rs-sidebar-item.is-active { color: ${C.navy}; background: ${C.goldBg}; box-shadow: inset 3px 0 0 ${C.gold}; }
         .rs-sidebar-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.gold}; margin-left: auto; }
         .rs-sidebar-bottom { margin-top: auto; padding: 18px 14px 20px; }
         .rs-sidebar-help { display: flex; gap: 9px; align-items: flex-start; padding: 12px; border-radius: 10px; background: ${C.cream}; color: ${C.navy}; margin-bottom: 14px; }
@@ -2230,12 +2230,12 @@ export default function RationSetuApp() {
         .rs-sidebar-logout { border: 0; background: transparent; color: ${C.grey}; display: flex; align-items: center; gap: 9px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .rs-card { transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
         .rs-card:hover { border-color: #C8D5E2 !important; box-shadow: 0 8px 24px rgba(23,50,77,0.08) !important; }
-        .rs-home-hero { margin: 28px 0 20px; padding: 24px 26px; border-radius: 16px; color: ${C.white}; background: linear-gradient(115deg, ${C.navyDeep}, ${C.navy}); display: flex; align-items: center; justify-content: space-between; gap: 20px; position: relative; overflow: hidden; }
-        .rs-home-hero:after { content: ""; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -70px; top: -100px; background: rgba(22,128,92,.28); }
+        .rs-home-hero { margin: 28px 0 20px; padding: 24px 26px; border-radius: 16px; color: ${C.white}; background: ${C.navyDeep}; display: flex; align-items: center; justify-content: space-between; gap: 20px; position: relative; overflow: hidden; }
+        .rs-home-hero:after { content: ""; position: absolute; width: 220px; height: 220px; border-radius: 50%; right: -70px; top: -100px; background: rgba(232,119,34,.18); }
         .rs-home-hero h1 { margin: 7px 0 5px; font-family: Poppins, sans-serif; font-size: clamp(21px, 3vw, 28px); line-height: 1.2; letter-spacing: -.02em; }
         .rs-home-hero p { margin: 0; font-size: 12px; color: rgba(255,255,255,.7); }
-        .rs-eyebrow { color: #B6E5D2; font-size: 9.5px; font-weight: 800; letter-spacing: .13em; }
-        .rs-hero-mark { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #F7CB6E; position: relative; z-index: 1; flex: 0 0 auto; }
+        .rs-eyebrow { color: #FFB27A; font-size: 9.5px; font-weight: 800; letter-spacing: .13em; }
+        .rs-hero-mark { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #FFB27A; position: relative; z-index: 1; flex: 0 0 auto; }
         .rs-public-home { min-height: 640px; background: #F8FAFC; color: ${C.navy}; }
         .rs-public-header { min-height: 78px; display: flex; align-items: center; gap: 28px; justify-content: space-between; padding: 0 34px; background: ${C.white}; border-bottom: 1px solid ${C.greyLine}; }
         .rs-public-brand { display: flex; align-items: center; gap: 10px; min-width: 220px; }
@@ -2252,15 +2252,15 @@ export default function RationSetuApp() {
         .rs-public-hero { max-width: 1050px; margin: 0 auto; padding: 68px 34px 56px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 50px; align-items: center; }
         .rs-public-kicker { display: block; color: ${C.green}; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
         .rs-public-hero h1 { margin: 13px 0 14px; font-family: Poppins, sans-serif; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; letter-spacing: -.04em; color: ${C.navyDeep}; }
-        .rs-public-hero h1 em { color: #B87512; font-style: normal; }
+        .rs-public-hero h1 em { color: ${C.gold}; font-style: normal; }
         .rs-public-hero-copy > p { max-width: 500px; color: ${C.grey}; line-height: 1.7; font-size: 14px; margin: 0 0 24px; }
         .rs-public-hero-actions { display: flex; align-items: center; gap: 20px; }
         .rs-text-action { border: 0; background: transparent; color: ${C.navy}; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
         .rs-public-hero-panel { background: ${C.navy}; color: ${C.white}; border-radius: 14px; padding: 22px; box-shadow: 0 18px 34px rgba(11,34,57,.18); }
         .rs-public-panel-top, .rs-public-stat, .rs-public-panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .rs-public-panel-top { padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.14); color: #C9D5E4; font-size: 11px; font-weight: 700; }
-        .rs-live { color: #B5E4D0; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; }
-        .rs-live i, .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #55C493; display: inline-block; }
+        .rs-live { color: #A8E0C6; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; }
+        .rs-live i, .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.green}; display: inline-block; }
         .rs-public-stat { padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,.14); flex-direction: column; align-items: flex-start; gap: 3px; }
         .rs-public-stat strong { font-family: Poppins, sans-serif; font-size: 24px; }
         .rs-public-stat span { color: #B8C7D9; font-size: 11px; }
@@ -2281,7 +2281,7 @@ export default function RationSetuApp() {
         .rs-public-notice, .rs-public-help { border-radius: 10px; padding: 20px; border: 1px solid ${C.greyLine}; background: ${C.white}; }
         .rs-public-notice { border-left: 4px solid ${C.gold}; }
         .rs-public-notice h2 { font-size: 15px; margin: 0; }
-        .rs-notice-badge { color: #936615; background: ${C.goldBg}; padding: 5px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+        .rs-notice-badge { color: #A94B0A; background: ${C.goldBg}; padding: 5px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
         .rs-public-notice p, .rs-public-help p { color: ${C.grey}; line-height: 1.55; font-size: 11.5px; margin: 13px 0; }
         .rs-public-notice button { border: 0; background: none; color: ${C.navy}; padding: 0; font-size: 11px; font-weight: 800; cursor: pointer; }
         .rs-public-help { display: flex; align-items: center; gap: 13px; }
@@ -2290,7 +2290,7 @@ export default function RationSetuApp() {
         .rs-public-help p { margin-bottom: 0; }
         .rs-public-help > svg { margin-left: auto; color: ${C.grey}; flex: 0 0 auto; }
         .rs-public-footer { display: flex; justify-content: space-between; gap: 12px; padding: 17px 34px; border-top: 1px solid ${C.greyLine}; color: ${C.grey}; font-size: 10px; }
-        .rs-auth-screen { min-height: 100%; display: grid; place-items: center; padding: 42px 20px; background: #F4F6FA; }
+        .rs-auth-screen { min-height: 100%; display: grid; place-items: center; padding: 42px 20px; background: ${C.bg}; }
         .rs-auth-card { width: min(100%, 440px); padding: 30px 32px; border: 1px solid ${C.greyLine}; border-radius: 12px; background: ${C.white}; box-shadow: 0 12px 28px rgba(16,42,67,.08); }
         .rs-auth-card > img, .rs-auth-card > div:first-child { margin-bottom: 20px; }
         .rs-auth-heading { margin-bottom: 22px; }
@@ -2310,7 +2310,7 @@ export default function RationSetuApp() {
         .rs-wa-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px; border-bottom: 1px solid ${C.greyLine}; }
         .rs-wa-heading h2 { margin: 5px 0 4px; font-family: Poppins, sans-serif; color: ${C.navy}; font-size: 19px; }
         .rs-wa-heading p { margin: 0; color: ${C.grey}; font-size: 11.5px; }
-        .rs-demo-badge { flex: 0 0 auto; color: #8A5D0B; background: ${C.goldBg}; border: 1px solid #EBCB8A; border-radius: 5px; padding: 5px 8px; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+        .rs-demo-badge { flex: 0 0 auto; color: #A94B0A; background: ${C.goldBg}; border: 1px solid #F3B58C; border-radius: 5px; padding: 5px 8px; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
         .rs-wa-workspace { display: grid; grid-template-columns: minmax(220px, .85fr) 1.15fr; gap: 0; }
         .rs-wa-contacts { border-right: 1px solid ${C.greyLine}; }
         .rs-wa-composer { padding: 20px 22px; }
@@ -2318,8 +2318,8 @@ export default function RationSetuApp() {
         .rs-wa-panel-title span { color: ${C.grey}; font-size: 10px; font-weight: 500; }
         .rs-wa-contact-list { max-height: 332px; overflow-y: auto; padding: 7px; }
         .rs-wa-contact-list button { width: 100%; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 7px; padding: 9px; background: transparent; text-align: left; cursor: pointer; color: ${C.navy}; }
-        .rs-wa-contact-list button:hover, .rs-wa-contact-list button.is-selected { background: #EEF2F7; }
-        .rs-wa-contact-list button.is-selected { background: #DCE8F6; box-shadow: inset 4px 0 0 ${C.navy}; }
+        .rs-wa-contact-list button:hover { background: ${C.cream}; }
+        .rs-wa-contact-list button.is-selected { background: ${C.goldBg}; box-shadow: inset 4px 0 0 ${C.gold}; }
         .rs-wa-contact-list button:focus-visible { outline: 2px solid ${C.gold}; outline-offset: -2px; }
         .rs-wa-contact-list button > span:nth-child(2) { min-width: 0; flex: 1; display: grid; gap: 2px; }
         .rs-wa-contact-list b { font-size: 11.5px; }
@@ -2333,15 +2333,15 @@ export default function RationSetuApp() {
         .rs-wa-compose-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: ${C.grey}; font-size: 10px; }
         .rs-wa-compose-footer button { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 7px; background: ${C.navy}; color: ${C.white}; padding: 10px 13px; cursor: pointer; font-size: 10.5px; font-weight: 800; }
         .rs-wa-compose-footer button:disabled { opacity: .45; cursor: not-allowed; }
-        .rs-wa-persistence-note { margin: 10px 0 0; color: #8A5D0B; font-size: 10px; }
+        .rs-wa-persistence-note { margin: 10px 0 0; color: #A94B0A; font-size: 10px; }
         .rs-wa-activity { border-top: 1px solid ${C.greyLine}; }
         .rs-wa-activity table { width: 100%; border-collapse: collapse; min-width: 540px; }
         .rs-wa-activity th { background: #F5F7FA; color: ${C.grey}; font-size: 10px; text-align: left; padding: 10px 18px; }
         .rs-wa-activity td { color: ${C.navy}; font-size: 10.5px; padding: 11px 18px; border-top: 1px solid ${C.greyLine}; vertical-align: top; }
         .rs-wa-activity td:first-child { display: grid; gap: 2px; }
         .rs-wa-status { display: inline-block; border-radius: 99px; padding: 4px 7px; font-size: 9px; font-weight: 800; }
-        .rs-wa-status.sent, .rs-wa-status.delivered { background: #E8EEF7; color: ${C.navy}; }
-        .rs-wa-status.queued { background: ${C.goldBg}; color: #8A5D0B; }
+        .rs-wa-status.sent, .rs-wa-status.delivered { background: ${C.greenBg}; color: #0B6844; }
+        .rs-wa-status.queued { background: ${C.goldBg}; color: #A94B0A; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
@@ -2411,7 +2411,7 @@ export default function RationSetuApp() {
         /* ===== Government portal presentation ===== */
         .rs-page {
           padding: 18px 28px 28px;
-          background: linear-gradient(180deg, #eef2f8 0%, #f8fafc 42%, #eef2f8 100%) !important;
+          background: ${C.bg} !important;
         }
         .rs-global-header {
           width: min(100%, 1280px);
@@ -2434,7 +2434,7 @@ export default function RationSetuApp() {
           display: inline-flex; align-items: center; gap: 7px;
           color: ${C.grey}; font-size: 11px; font-weight: 700; white-space: nowrap;
         }
-        .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #2DA475; box-shadow: 0 0 0 3px #E5F4EE; display: inline-block; }
+        .rs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: ${C.green}; box-shadow: 0 0 0 3px ${C.greenBg}; display: inline-block; }
         .rs-role-switch {
           display: flex; gap: 3px; padding: 4px; border: 1px solid ${C.greyLine};
           border-radius: 10px; background: #f8fafc;
@@ -2450,7 +2450,7 @@ export default function RationSetuApp() {
           box-shadow: 0 12px 32px rgba(24,43,82,.08);
         }
         .rs-shell.has-sidebar { flex-direction: row; }
-        .rs-sidebar { background: #fbfcfe; border-right: 1px solid ${C.greyLine}; }
+        .rs-sidebar { background: ${C.white}; border-right: 1px solid ${C.greyLine}; }
         .rs-sidebar-brand { padding: 25px 20px 22px; background: ${C.navyDeep}; border-bottom: 0; }
         .rs-sidebar-brand > div { margin-bottom: 12px; }
         .rs-sidebar-brand > div span { color: ${C.white} !important; }
@@ -2458,8 +2458,8 @@ export default function RationSetuApp() {
         .rs-sidebar-nav { padding: 24px 12px; }
         .rs-sidebar-item { color: #65738b; border-radius: 8px; padding: 11px 12px; font-size: 12px; }
         .rs-sidebar-item:hover { background: #edf1f8; color: ${C.navy}; }
-        .rs-sidebar-item.is-active { color: ${C.navy}; background: #e7ecf7; box-shadow: inset 3px 0 0 ${C.indigo}; }
-        .rs-sidebar-help { background: #edf2fa; color: ${C.navy}; }
+        .rs-sidebar-item.is-active { color: ${C.navy}; background: ${C.goldBg}; box-shadow: inset 3px 0 0 ${C.gold}; }
+        .rs-sidebar-help { background: ${C.cream}; color: ${C.navy}; }
         .rs-portal-header {
           min-height: 68px; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center;
           gap: 16px; background: ${C.navyDeep}; color: ${C.white};
@@ -2472,13 +2472,13 @@ export default function RationSetuApp() {
         .rs-header-icon { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 7px; background: rgba(255,255,255,.08); color: #fff; cursor: pointer; }
         .rs-header-user { display: inline-flex; align-items: center; gap: 8px; color: #e7edf8; font-size: 11px; font-weight: 700; }
         .rs-avatar { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: ${C.navyDeep}; background: ${C.gold}; font-size: 11px; font-weight: 800; }
-        .rs-service-nav { min-height: 42px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid ${C.greyLine}; background: #fbfcfe; }
+        .rs-service-nav { min-height: 42px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid ${C.greyLine}; background: ${C.white}; }
         .rs-service-nav-label { color: ${C.navy}; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-right: 8px; }
         .rs-service-nav button { height: 42px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: ${C.grey}; font-size: 11px; font-weight: 700; cursor: pointer; }
         .rs-service-nav button.is-current { color: ${C.navy}; border-bottom-color: ${C.gold}; }
         .rs-shell-scroll { background: #f7f9fc; }
         .rs-shell.has-sidebar .rs-shell-scroll { padding: 0; }
-        .rs-home-hero { margin-top: 20px; border-radius: 11px; background: linear-gradient(110deg, ${C.navyDeep}, ${C.indigo}); }
+        .rs-home-hero { margin-top: 20px; border-radius: 11px; background: ${C.navyDeep}; }
         .rs-card { border-radius: 11px !important; box-shadow: 0 2px 8px rgba(24,43,82,.04) !important; }
         .rs-card:hover { box-shadow: 0 8px 22px rgba(24,43,82,.09) !important; }
 
