@@ -1028,6 +1028,71 @@ function DealerLoginScreen({ onLogin }) {
   );
 }
 
+function AdminLoginScreen({ onLogin }) {
+  const [adminId, setAdminId] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = (event) => {
+    event.preventDefault();
+    if (adminId.trim().toUpperCase() === "ADMIN-001" && password === "Admin@123") {
+      setError("");
+      onLogin();
+      return;
+    }
+    setError("Invalid demo administrator credentials. Please check the ID and password.");
+  };
+
+  return (
+    <div className="rs-auth-screen">
+      <Card style={{ padding: 24, maxWidth: 440, width: "100%" }}>
+        <div className="rs-auth-heading rs-auth-dealer-heading">
+          <Logo size={52} />
+          <h2 style={{ fontFamily: "Poppins, sans-serif", color: C.navy, fontSize: 22, margin: "14px 0 5px" }}>Administrator sign in</h2>
+          <p style={{ color: C.grey, fontSize: 12.5, margin: 0 }}>Secure access to portal analytics and operations</p>
+        </div>
+        <form onSubmit={submit}>
+          <label htmlFor="admin-id" style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.grey, marginBottom: 7 }}>Admin ID</label>
+          <input
+            id="admin-id"
+            value={adminId}
+            onChange={(event) => { setAdminId(event.target.value); setError(""); }}
+            placeholder="ADMIN-001"
+            autoComplete="username"
+            className="rs-auth-input"
+            aria-invalid={Boolean(error)}
+          />
+          <label htmlFor="admin-password" style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.grey, margin: "14px 0 7px" }}>Password</label>
+          <div className="rs-auth-input-row">
+            <input
+              id="admin-password"
+              value={password}
+              onChange={(event) => { setPassword(event.target.value); setError(""); }}
+              placeholder="Enter password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              className="rs-auth-input"
+              aria-invalid={Boolean(error)}
+            />
+            <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"} style={{ border: 0, background: "transparent", color: C.indigo, cursor: "pointer", fontSize: 11, fontWeight: 700 }}>
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+          <div className="rs-demo-badge" style={{ display: "block", marginBottom: 14 }}>
+            DEMO ONLY · ID ADMIN-001 · Password Admin@123
+          </div>
+          {error && <p role="alert" style={{ color: C.red, fontSize: 12.5, margin: "0 0 12px" }}>{error}</p>}
+          <Btn full icon={ShieldCheck} disabled={!adminId.trim() || !password} type="submit">Sign in to admin portal</Btn>
+        </form>
+        <p style={{ color: C.grey, fontSize: 11, lineHeight: 1.5, margin: "14px 0 0" }}>
+          This prototype uses mock credentials only and does not provide real government authentication.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
 function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
   const { t } = useT();
   const userToken = state.queue.find((q) => q.id === state.userTokenId);
@@ -2055,17 +2120,94 @@ function StatBox({ label, value, accent }) {
   );
 }
 
+const ADMIN_STOCK_ALLOCATIONS = [
+  { code: "FPS-102", shop: "Shanti Nagar Fair Price Shop", location: "Ward 12 · Bhopal", period: "September 2026", date: "02 Sep 2026", wheat: 820, rice: 640, pulses: 210, sugar: 96, total: 1766, remaining: 284, status: "Dispatched" },
+  { code: "FPS-118", shop: "Sadar Bazaar Cooperative", location: "Ward 4 · Indore", period: "September 2026", date: "03 Sep 2026", wheat: 760, rice: 590, pulses: 180, sugar: 88, total: 1618, remaining: 412, status: "In transit" },
+  { code: "FPS-127", shop: "Nehru Nagar FPS", location: "Ward 9 · Gwalior", period: "September 2026", date: "04 Sep 2026", wheat: 690, rice: 540, pulses: 160, sugar: 72, total: 1462, remaining: 538, status: "Pending receipt" },
+  { code: "FPS-141", shop: "Lake View Distribution Centre", location: "Ward 16 · Jabalpur", period: "September 2026", date: "05 Sep 2026", wheat: 910, rice: 720, pulses: 240, sugar: 110, total: 1980, remaining: 120, status: "Dispatched" },
+];
+
+function AdminStockAllocation() {
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("All");
+  const filtered = ADMIN_STOCK_ALLOCATIONS.filter((item) => {
+    const haystack = `${item.code} ${item.shop} ${item.location}`.toLowerCase();
+    return haystack.includes(query.trim().toLowerCase()) && (status === "All" || item.status === status);
+  });
+  const totals = ADMIN_STOCK_ALLOCATIONS.reduce((sum, item) => ({
+    allocated: sum.allocated + item.total,
+    remaining: sum.remaining + item.remaining,
+    wheat: sum.wheat + item.wheat,
+    rice: sum.rice + item.rice,
+    pulses: sum.pulses + item.pulses,
+    sugar: sum.sugar + item.sugar,
+  }), { allocated: 0, remaining: 0, wheat: 0, rice: 0, pulses: 0, sugar: 0 });
+
+  return (
+    <section aria-labelledby="stock-allocation-title" style={{ marginTop: 22 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+        <div>
+          <span className="rs-portal-breadcrumb">SUPPLY CHAIN · DEMO DATA</span>
+          <h2 id="stock-allocation-title" style={{ margin: "5px 0 3px", color: C.navy, fontFamily: "Poppins, sans-serif", fontSize: 18 }}>Stock allocation overview</h2>
+          <p style={{ margin: 0, color: C.grey, fontSize: 11.5 }}>Mock quantities sent to each dealer and fair price shop.</p>
+        </div>
+        <span className="rs-demo-badge">DEMO / MOCK</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8, marginBottom: 12 }}>
+        <StatBox label="Total allocated (kg)" value={totals.allocated.toLocaleString()} accent={C.navy} />
+        <StatBox label="Remaining (kg)" value={totals.remaining.toLocaleString()} accent={C.gold} />
+        <StatBox label="Wheat (kg)" value={totals.wheat.toLocaleString()} accent={C.infoText} />
+        <StatBox label="Rice (kg)" value={totals.rice.toLocaleString()} accent={C.green} />
+      </div>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ display: "flex", gap: 8, padding: 12, borderBottom: `1px solid ${C.greyLine}`, flexWrap: "wrap" }}>
+          <label style={{ flex: "1 1 220px", color: C.grey, fontSize: 10.5, fontWeight: 700 }}>
+            Search shop, code or location
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. FPS-102 or Shanti Nagar" aria-label="Search stock allocations" className="rs-auth-input" style={{ marginTop: 5, padding: "8px 10px", fontSize: 12 }} />
+          </label>
+          <label style={{ flex: "0 1 170px", color: C.grey, fontSize: 10.5, fontWeight: 700 }}>
+            Filter by status
+            <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter stock allocations by status" className="rs-auth-input" style={{ marginTop: 5, padding: "8px 10px", fontSize: 12 }}>
+              <option>All</option><option>Dispatched</option><option>In transit</option><option>Pending receipt</option>
+            </select>
+          </label>
+        </div>
+        <div className="rs-table-scroll">
+          <table className="rs-allocation-table" style={{ width: "100%", minWidth: 920, borderCollapse: "collapse" }}>
+            <caption style={{ textAlign: "left", padding: "10px 12px", color: C.grey, fontSize: 10.5 }}>September 2026 allocation register · {filtered.length} of {ADMIN_STOCK_ALLOCATIONS.length} shops shown</caption>
+            <thead><tr>{["Dealer / shop", "Destination", "Allocation period", "Wheat kg", "Rice kg", "Pulses kg", "Sugar kg", "Total / remaining", "Status"].map((heading) => <th key={heading}>{heading}</th>)}</tr></thead>
+            <tbody>
+              {filtered.map((item) => (
+                <tr key={item.code}>
+                  <td><b>{item.code}</b><small>{item.shop}</small></td><td>{item.location}</td><td>{item.period}<small>Sent {item.date}</small></td>
+                  <td>{item.wheat}</td><td>{item.rice}</td><td>{item.pulses}</td><td>{item.sugar}</td>
+                  <td><b>{item.total} kg</b><small>{item.remaining} kg remaining</small></td>
+                  <td><span className="rs-wa-status" style={{ background: item.status === "Dispatched" ? C.greenBg : C.goldBg, color: item.status === "Dispatched" ? C.green : C.warningText }}>{item.status}</span></td>
+                </tr>
+              ))}
+              {!filtered.length && <tr><td colSpan="9" style={{ padding: 18, color: C.grey, textAlign: "center" }}>No allocation records match the current filters.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </section>
+  );
+}
+
 /* =========================================================================
    ADMIN DASHBOARD (secondary, kept concise)
    ========================================================================= */
-function AdminDashboard({ state, dispatch }) {
+function AdminDashboard({ state, dispatch, onLogout }) {
   const { t } = useT();
   const noShows = state.queue.filter((q) => q.status === "noshow").length;
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <Logo size={34} />
-        <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14 }}>{t(dict.adminPortal)}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14 }}>{t(dict.adminPortal)}</p>
+          <Btn variant="outline" size="sm" icon={LogOut} onClick={onLogout}>Log out</Btn>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px,1fr))", gap: 10, marginBottom: 22 }}>
@@ -2091,6 +2233,7 @@ function AdminDashboard({ state, dispatch }) {
           {t({ hi: "AI अंतर्दृष्टियाँ इस डेमो में सिम्युलेटेड हैं, वास्तविक प्रशिक्षित मॉडल से नहीं।", en: "AI insights in this demo are simulated, not from a real trained model." })}
         </p>
       </div>
+      <AdminStockAllocation />
       <WhatsAppMockService state={state} dispatch={dispatch} />
     </div>
   );
@@ -2186,6 +2329,7 @@ export default function RationSetuApp() {
   const [lang, setLang] = useState("hi");
   const [role, setRole] = useState("beneficiary");
   const [dealerAuthenticated, setDealerAuthenticated] = useState(false);
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [theme, setTheme] = useState(getInitialTheme);
   const [state, dispatch] = useReducer(reducer, undefined, loadInitialState);
 
@@ -2397,6 +2541,10 @@ export default function RationSetuApp() {
         .rs-wa-status { display: inline-block; border-radius: 99px; padding: 4px 7px; font-size: 9px; font-weight: 800; }
         .rs-wa-status.sent, .rs-wa-status.delivered { background: ${C.greenBg}; color: #0B6844; }
         .rs-wa-status.queued { background: ${C.goldBg}; color: #A94B0A; }
+        .rs-allocation-table th { background: ${C.surfaceMuted}; color: ${C.grey}; font-size: 9.5px; text-align: left; padding: 10px 12px; white-space: nowrap; }
+        .rs-allocation-table td { color: ${C.navy}; font-size: 10.5px; padding: 10px 12px; border-top: 1px solid ${C.greyLine}; vertical-align: top; }
+        .rs-allocation-table td:first-child, .rs-allocation-table td:nth-child(3), .rs-allocation-table td:nth-child(8) { display: grid; gap: 2px; }
+        .rs-allocation-table small { color: ${C.grey}; font-size: 9px; font-weight: 500; }
 
         /* Desktop uses the same product shell as a real operations dashboard. */
         @media (min-width: 640px) {
@@ -2662,7 +2810,7 @@ export default function RationSetuApp() {
               { key: "dealer", label: t(dict.roleDealer), icon: LayoutDashboard },
               { key: "admin", label: t(dict.roleAdmin), icon: BarChart3 },
             ].map((r) => (
-              <button key={r.key} onClick={() => { setRole(r.key); if (r.key !== "dealer") setDealerAuthenticated(false); }} style={{
+              <button key={r.key} onClick={() => { setRole(r.key); if (r.key !== "dealer") setDealerAuthenticated(false); if (r.key !== "admin") setAdminAuthenticated(false); }} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 9,
                 border: "none", cursor: "pointer", fontWeight: 700, fontSize: 12.5,
                 background: role === r.key ? C.navy : "transparent", color: role === r.key ? C.white : C.grey,
@@ -2678,7 +2826,8 @@ export default function RationSetuApp() {
           {role === "beneficiary" && <BeneficiaryApp state={state} dispatch={dispatch} lang={lang} setLang={setLang} />}
           {role === "dealer" && !dealerAuthenticated && <DealerLoginScreen onLogin={() => setDealerAuthenticated(true)} />}
           {role === "dealer" && dealerAuthenticated && <DealerDashboard state={state} dispatch={dispatch} lang={lang} onLogout={() => setDealerAuthenticated(false)} />}
-          {role === "admin" && <AdminDashboard state={state} dispatch={dispatch} />}
+          {role === "admin" && !adminAuthenticated && <AdminLoginScreen onLogin={() => setAdminAuthenticated(true)} />}
+          {role === "admin" && adminAuthenticated && <AdminDashboard state={state} dispatch={dispatch} onLogout={() => setAdminAuthenticated(false)} />}
         </div>
 
         <p style={{ textAlign: "center", fontSize: 11, color: C.grey, marginTop: 22 }}>
