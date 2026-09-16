@@ -402,6 +402,22 @@ const CARD_INFO = {
   ekyc: "ekycVerified",
   familyCount: 5,
 };
+const CURRENT_BENEFICIARY_ID = CARD_INFO.cardNo;
+const ACTIVE_TOKEN_STATUSES = new Set(["waiting", "serving"]);
+
+function getActiveToken(state, beneficiaryId = CURRENT_BENEFICIARY_ID) {
+  return state.queue.find((token) =>
+    ACTIVE_TOKEN_STATUSES.has(token.status) &&
+    (token.ownerId === beneficiaryId || (!token.ownerId && token.id === state.userTokenId))
+  ) || null;
+}
+
+function nextAvailableTokenId(state, firstNumber) {
+  const used = new Set(state.queue.map((token) => token.id));
+  let number = firstNumber;
+  while (used.has(`A${number}`)) number += 1;
+  return `A${number}`;
+}
 
 const FAMILY_MEMBERS = [
   { name: "सीमा देवी / Seema Devi", relKey: "self", age: 34, ekyc: "ekycVerified" },
@@ -465,10 +481,14 @@ function loadInitialState() {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (!saved) return initialState;
     const parsed = JSON.parse(saved);
+    const userTokenId = parsed.userTokenId || null;
     return {
       ...initialState,
       ...parsed,
-      queue: Array.isArray(parsed.queue) ? parsed.queue : initialState.queue,
+      queue: (Array.isArray(parsed.queue) ? parsed.queue : initialState.queue).map((token) =>
+        token.id === userTokenId && !token.ownerId ? { ...token, ownerId: CURRENT_BENEFICIARY_ID } : token
+      ),
+      userTokenId,
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications : initialState.notifications,
       history: Array.isArray(parsed.history) ? parsed.history : initialState.history,
       complaints: Array.isArray(parsed.complaints) ? parsed.complaints : initialState.complaints,
@@ -503,26 +523,42 @@ function reducer(state, action) {
       return { ...state, whatsappMessages: [message, ...(state.whatsappMessages || [])].slice(0, 50) };
     }
     case "BOOK_ONLINE": {
-      if (state.queue.some((q) => q.id === "A124")) return state;
+      const ownerId = action.beneficiaryId || CURRENT_BENEFICIARY_ID;
+      const activeToken = getActiveToken(state, ownerId);
+      if (activeToken) {
+        return {
+          ...state,
+          tokenGenerationError: { tokenId: activeToken.id, ownerId, path: "online" },
+        };
+      }
       const time = "10:30 AM";
-      const newQueue = [...state.queue, { id: "A124", mode: "online", status: "waiting", time, name: "सीमा देवी / Seema Devi (आप/You)" }];
+      const tokenId = nextAvailableTokenId(state, 124);
+      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "online", status: "waiting", time, name: "सीमा देवी / Seema Devi (आप/You)" }];
       return {
         ...state,
         queue: newQueue,
-        userTokenId: "A124",
+        userTokenId: ownerId === CURRENT_BENEFICIARY_ID ? tokenId : state.userTokenId,
+        tokenGenerationError: null,
         auditLog: [auditEntry("Token created", "A124 online booking"), ...state.auditLog],
         notifications: [
-          { icon: "check", title: { hi: "ऑनलाइन स्लॉट पक्का हुआ", en: "Online Slot Confirmed" }, body: { hi: "आपका ऑनलाइन स्लॉट पक्का हो गया है। टोकन A124, 10:30 AM के लिए बुक हुआ।", en: "Your online slot is confirmed. Token A124 booked for 10:30 AM." } },
+          { icon: "check", title: { hi: "ऑनलाइन स्लॉट पक्का हुआ", en: "Online Slot Confirmed" }, body: { hi: `आपका ऑनलाइन स्लॉट पक्का हो गया है। टोकन ${tokenId}, 10:30 AM के लिए बुक हुआ।`, en: `Your online slot is confirmed. Token ${tokenId} booked for 10:30 AM.` } },
           ...state.notifications,
         ],
       };
     }
     case "GENERATE_QR_TOKEN": {
-      // dealer / walk-in flow — generates A125 into the SAME queue
-      if (state.queue.some((q) => q.id === "A125")) return state;
+      const ownerId = action.beneficiaryId || CURRENT_BENEFICIARY_ID;
+      const activeToken = getActiveToken(state, ownerId);
+      if (activeToken) {
+        return {
+          ...state,
+          tokenGenerationError: { tokenId: activeToken.id, ownerId, path: "qr" },
+        };
+      }
       const time = nextSlotLabel();
-      const newQueue = [...state.queue, { id: "A125", mode: "qr", status: "waiting", time, name: "इमरान खान / Imran Khan" }];
-      return { ...state, queue: newQueue, userTokenId: "A125", auditLog: [auditEntry("Token created", "A125 offline QR"), ...state.auditLog] };
+      const tokenId = nextAvailableTokenId(state, 125);
+      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "qr", status: "waiting", time, name: "इमरान खान / Imran Khan" }];
+      return { ...state, queue: newQueue, userTokenId: ownerId === CURRENT_BENEFICIARY_ID ? tokenId : state.userTokenId, tokenGenerationError: null, auditLog: [auditEntry("Token created", `${tokenId} offline QR`), ...state.auditLog] };
     }
     case "CANCEL_TOKEN": {
       if (!state.userTokenId) return state;
@@ -532,6 +568,7 @@ function reducer(state, action) {
         ...state,
         queue: state.queue.filter((q) => q.id !== state.userTokenId),
         userTokenId: null,
+        tokenGenerationError: null,
         auditLog: [auditEntry("Token cancelled", token.id), ...state.auditLog],
         notifications: [
           { icon: "check", title: { hi: "टोकन रद्द हो गया", en: "Token Cancelled" }, body: { hi: `टोकन ${token.id} रद्द कर दिया गया है।`, en: `Token ${token.id} has been cancelled.` } },
@@ -1482,7 +1519,7 @@ function ComplaintsScreen({ state, dispatch, onBack, onNav }) {
 
 function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
   const { t } = useT();
-  const alreadyBooked = state.queue.some((q) => q.id === "A124");
+  const activeToken = getActiveToken(state);
   const slots = ["9:00 AM", "9:20 AM", "9:40 AM", "10:00 AM", "10:20 AM", "10:30 AM"];
   const [selected, setSelected] = useState("10:30 AM");
 
@@ -1512,8 +1549,16 @@ function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
         </div>
         <p style={{ fontSize: 11.5, color: C.grey, margin: "0 0 18px", lineHeight: 1.5 }}>{t(dict.slotCapacityNote)}</p>
 
-        {alreadyBooked ? (
-          <Btn full variant="ghost" icon={CheckCircle2} disabled>{t(dict.completed)}: A124</Btn>
+        {activeToken ? (
+          <Card style={{ border: `1px solid ${C.gold}`, background: C.goldBg }}>
+            <p style={{ margin: "0 0 6px", color: C.navy, fontSize: 13, fontWeight: 800 }}>An active token already exists</p>
+            <p style={{ margin: "0 0 12px", color: C.grey, fontSize: 12, lineHeight: 1.45 }}>
+              Token <b style={{ color: C.navy }}>{activeToken.id}</b> is still {activeToken.status === "serving" ? "in service" : "active"}. Cancel it before generating another token.
+            </p>
+            <Btn full variant="danger" icon={AlertTriangle} onClick={() => {
+              if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID });
+            }}>{t(dict.cancelToken)} {activeToken.id}</Btn>
+          </Card>
         ) : (
           <Btn full icon={CheckCircle2} onClick={() => { dispatch({ type: "BOOK_ONLINE" }); onBooked(); }}>
             {t(dict.confirmToken)}
@@ -1527,7 +1572,7 @@ function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
 function ScanScreen({ state, dispatch, onBack, onDone }) {
   const { t } = useT();
   const [phase, setPhase] = useState("scan"); // scan -> verified -> details -> generated
-  const already = state.queue.some((q) => q.id === state.userTokenId);
+  const activeToken = getActiveToken(state);
 
   return (
     <div>
@@ -1567,9 +1612,21 @@ function ScanScreen({ state, dispatch, onBack, onDone }) {
               <p style={{ margin: "0 0 4px", fontSize: 13.5, color: C.navy }}><b>{t(dict.rationCardNumber)}:</b> XXXX-1234</p>
               <p style={{ margin: 0, fontSize: 13.5, color: C.navy }}><b>{t(dict.familyMembers)}:</b> 5</p>
             </Card>
-            <Btn full icon={Ticket} onClick={() => { dispatch({ type: "GENERATE_QR_TOKEN" }); setPhase("generated"); }}>
-              {t(dict.generateToken)}
-            </Btn>
+            {activeToken ? (
+              <Card style={{ border: `1px solid ${C.gold}`, background: C.goldBg }}>
+                <p style={{ margin: "0 0 6px", color: C.navy, fontSize: 13, fontWeight: 800 }}>An active token already exists</p>
+                <p style={{ margin: "0 0 12px", color: C.grey, fontSize: 12, lineHeight: 1.45 }}>
+                  Token <b style={{ color: C.navy }}>{activeToken.id}</b> must be cancelled before an offline QR token can be generated.
+                </p>
+                <Btn full variant="danger" icon={AlertTriangle} onClick={() => {
+                  if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID });
+                }}>{t(dict.cancelToken)} {activeToken.id}</Btn>
+              </Card>
+            ) : (
+              <Btn full icon={Ticket} onClick={() => { dispatch({ type: "GENERATE_QR_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID }); setPhase("generated"); }}>
+                {t(dict.generateToken)}
+              </Btn>
+            )}
           </>
         )}
 
@@ -1577,7 +1634,7 @@ function ScanScreen({ state, dispatch, onBack, onDone }) {
           <div style={{ textAlign: "center", paddingTop: 10 }}>
             <CheckCircle2 size={40} color={C.green} style={{ marginBottom: 10 }} />
             <p style={{ fontSize: 13, color: C.grey, margin: "0 0 4px" }}>{t(dict.token)}</p>
-            <p style={{ fontFamily: "Poppins, sans-serif", fontSize: 32, fontWeight: 800, color: C.navy, margin: "0 0 14px" }}>A125</p>
+            <p style={{ fontFamily: "Poppins, sans-serif", fontSize: 32, fontWeight: 800, color: C.navy, margin: "0 0 14px" }}>{state.userTokenId || "A125"}</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 20 }}>
               <ModePill mode="qr" />
               <StatusPill status="waiting" />
@@ -2033,7 +2090,7 @@ function DealerDashboard({ state, dispatch, lang, onLogout }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: C.grey, letterSpacing: 0.4, margin: 0 }}>{t(dict.liveQueueTitle)}</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <Btn size="sm" variant="outline" icon={QrCode} onClick={() => dispatch({ type: "GENERATE_QR_TOKEN" })}>A125 QR</Btn>
+              <Btn size="sm" variant="outline" icon={QrCode} onClick={() => dispatch({ type: "GENERATE_QR_TOKEN", beneficiaryId: "demo-imran-card" })}>Walk-in QR</Btn>
               <Btn size="sm" variant="danger" icon={AlertTriangle} onClick={() => dispatch({ type: "MARK_NOSHOW" })}>{t(dict.markNoShow)}</Btn>
             </div>
           </div>
