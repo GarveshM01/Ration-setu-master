@@ -139,7 +139,7 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppi
 /* Official Ration Setu logo (provided asset, unmodified) */
 import RATION_SETU_LOGO from "../assets/ration-setu-logo.png";
 import { isSupabaseConfigured, saveWhatsAppMessage } from "../services/whatsappRepository.js";
-import { findBeneficiary, listDemoBeneficiaries, getBeneficiarySource } from "../services/beneficiaryRepository.js";
+import { findBeneficiary, listDemoBeneficiaries, getBeneficiarySource, fetchBeneficiary } from "../services/beneficiaryRepository.js";
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
@@ -1008,6 +1008,8 @@ function LoginScreen({ onDone }) {
   const [card, setCard] = useState("");
   const beneficiaries = listDemoBeneficiaries();
   const [matches, setMatches] = useState([]);
+  const [lookupError, setLookupError] = useState("");
+  const [lookingUp, setLookingUp] = useState(false);
 
   return (
     <div className="rs-auth-screen">
@@ -1047,15 +1049,23 @@ function LoginScreen({ onDone }) {
               <input value={card} onChange={(e) => setCard(e.target.value)} placeholder="MP-45-1234-5678"
                 className="rs-auth-input" />
             </div>
-            <Btn full icon={IdCard} disabled={card.length < 4} onClick={() => {
-              const found = findBeneficiary(card);
-              if (found) { setMatches([]); onDone(found); } else setMatches(beneficiaries.filter((item) => item.id.includes(card.toUpperCase()) || item.cardNo.includes(card)));
+            <Btn full icon={IdCard} disabled={card.length < 4 || lookingUp} onClick={async () => {
+              setLookingUp(true);
+              setLookupError("");
+              try {
+                const found = await fetchBeneficiary(card);
+                if (found) { setMatches([]); onDone(found); }
+                else setMatches(beneficiaries.filter((item) => item.id.includes(card.toUpperCase()) || item.cardNo.includes(card)));
+              } catch (error) {
+                setLookupError("Live beneficiary service is unavailable. Try a seeded BEN-001 to BEN-012 record.");
+              } finally { setLookingUp(false); }
             }}>{t(dict.continue)}</Btn>
             {matches.length > 0 && <div className="rs-beneficiary-picker" aria-label="Demo beneficiary records">
               <p>Select a demo beneficiary record</p>
               {matches.map((item) => <button type="button" key={item.id} onClick={() => onDone(item)}><b>{item.id}</b><span>{item.name.en} · {item.cardNo}</span></button>)}
             </div>}
             <p style={{ fontSize: 11, color: C.grey, margin: "12px 0 0" }}>Demo records: BEN-001 to BEN-012. Enter a BEN ID or ration card number.</p>
+            {lookupError && <p role="alert" style={{ fontSize: 11.5, color: C.red, margin: "8px 0 0" }}>{lookupError}</p>}
           </div>
         )}
 

@@ -43,11 +43,18 @@ export function findBeneficiary(identifier) {
 }
 
 export function getBeneficiarySource() {
-  return "demo-local";
+  return import.meta.env.VITE_BENEFICIARY_API_URL ? "mysql-api" : "demo-local";
 }
 
-// Optional backend contract: GET ${VITE_BENEFICIARY_API_URL}/beneficiaries.
-// The browser never connects to MySQL directly; without this API the demo seed is used.
+export async function fetchBeneficiary(identifier) {
+  const baseUrl = import.meta.env.VITE_BENEFICIARY_API_URL;
+  if (!baseUrl) return findBeneficiary(identifier);
+  const normalized = String(identifier || "").trim().toUpperCase();
+  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/beneficiaries/${encodeURIComponent(normalized)}`);
+  if (!response.ok) throw new Error(`Beneficiary API returned ${response.status}`);
+  return response.json();
+}
+
 export async function fetchBeneficiaries() {
   const baseUrl = import.meta.env.VITE_BENEFICIARY_API_URL;
   if (!baseUrl) return listDemoBeneficiaries();
@@ -55,4 +62,33 @@ export async function fetchBeneficiaries() {
   if (!response.ok) throw new Error(`Beneficiary API returned ${response.status}`);
   const records = await response.json();
   return Array.isArray(records) && records.length ? records : listDemoBeneficiaries();
+}
+
+export async function createBeneficiaryToken(beneficiaryId, mode, scheduledTime) {
+  const baseUrl = import.meta.env.VITE_BENEFICIARY_API_URL;
+  if (!baseUrl) return null;
+  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/beneficiaries/${encodeURIComponent(beneficiaryId)}/tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode, scheduledTime }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload.error || `Token API returned ${response.status}`);
+    error.status = response.status;
+    error.token = payload.token;
+    throw error;
+  }
+  return payload;
+}
+
+export async function cancelBeneficiaryToken(tokenId) {
+  const baseUrl = import.meta.env.VITE_BENEFICIARY_API_URL;
+  if (!baseUrl) return false;
+  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/tokens/${encodeURIComponent(tokenId)}`, { method: "DELETE" });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `Token API returned ${response.status}`);
+  }
+  return true;
 }
