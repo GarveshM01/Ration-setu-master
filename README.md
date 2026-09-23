@@ -80,6 +80,22 @@ persisted in browser local storage so a refresh does not lose the demo data.
 The storage key is isolated in `src/components/RationSetuApp.jsx` and can be
 replaced with a Supabase data adapter once the target project is decided.
 
+### Beneficiary data adapter (demo fallback)
+
+The beneficiary login now includes 12 functional seeded records (`BEN-001`
+through `BEN-012`). Enter a `BEN-*` ID or the displayed ration-card number
+after the demo OTP step to load the selected name, family, card details, FPS,
+entitlements, token ownership, and beneficiary notifications. These records
+are defined in `src/services/beneficiaryRepository.js` and are intentionally
+credential-free local demo data.
+
+The browser must not connect directly to MySQL. If a backend proxy is
+available, set `VITE_BENEFICIARY_API_URL` to its base URL; the adapter will
+request `GET /beneficiaries` and expects the same record shape as the local
+seed. The proxy is responsible for MySQL credentials, validation, CORS, and
+authentication. If the variable is absent, the app remains fully functional
+using the local seed. No MySQL connection is present in this frontend build.
+
 ### Optional Supabase WhatsApp persistence
 
 The WhatsApp operations panel is explicitly a mock service. It works without

@@ -139,6 +139,7 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Poppi
 /* Official Ration Setu logo (provided asset, unmodified) */
 import RATION_SETU_LOGO from "../assets/ration-setu-logo.png";
 import { isSupabaseConfigured, saveWhatsAppMessage } from "../services/whatsappRepository.js";
+import { findBeneficiary, listDemoBeneficiaries, getBeneficiarySource } from "../services/beneficiaryRepository.js";
 const LOGO_SRC = RATION_SETU_LOGO;
 
 const C = {
@@ -366,9 +367,13 @@ const dict = {
 };
 
 const LangCtx = createContext({ lang: "hi", t: (k) => k });
+const BeneficiaryCtx = createContext(null);
 function useT() {
   const { lang, t } = useContext(LangCtx);
   return { lang, t };
+}
+function useBeneficiary() {
+  return useContext(BeneficiaryCtx) || { profile: null };
 }
 
 /* =========================================================================
@@ -408,7 +413,7 @@ const ACTIVE_TOKEN_STATUSES = new Set(["waiting", "serving"]);
 function getActiveToken(state, beneficiaryId = CURRENT_BENEFICIARY_ID) {
   return state.queue.find((token) =>
     ACTIVE_TOKEN_STATUSES.has(token.status) &&
-    (token.ownerId === beneficiaryId || (!token.ownerId && token.id === state.userTokenId))
+    (token.ownerId === beneficiaryId || (!token.ownerId && beneficiaryId === CURRENT_BENEFICIARY_ID && token.id === state.userTokenId))
   ) || null;
 }
 
@@ -533,7 +538,7 @@ function reducer(state, action) {
       }
       const time = "10:30 AM";
       const tokenId = nextAvailableTokenId(state, 124);
-      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "online", status: "waiting", time, name: "सीमा देवी / Seema Devi (आप/You)" }];
+      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "online", status: "waiting", time, name: `${action.beneficiaryName || "Beneficiary"} (You)` }];
       return {
         ...state,
         queue: newQueue,
@@ -557,17 +562,17 @@ function reducer(state, action) {
       }
       const time = nextSlotLabel();
       const tokenId = nextAvailableTokenId(state, 125);
-      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "qr", status: "waiting", time, name: "इमरान खान / Imran Khan" }];
+      const newQueue = [...state.queue, { id: tokenId, ownerId, mode: "qr", status: "waiting", time, name: `${action.beneficiaryName || "Beneficiary"} (Walk-in)` }];
       return { ...state, queue: newQueue, userTokenId: ownerId === CURRENT_BENEFICIARY_ID ? tokenId : state.userTokenId, tokenGenerationError: null, auditLog: [auditEntry("Token created", `${tokenId} offline QR`), ...state.auditLog] };
     }
     case "CANCEL_TOKEN": {
-      if (!state.userTokenId) return state;
-      const token = state.queue.find((q) => q.id === state.userTokenId);
+      const ownerId = action.beneficiaryId || CURRENT_BENEFICIARY_ID;
+      const token = getActiveToken(state, ownerId);
       if (!token || token.status !== "waiting") return state;
       return {
         ...state,
-        queue: state.queue.filter((q) => q.id !== state.userTokenId),
-        userTokenId: null,
+        queue: state.queue.filter((q) => q.id !== token.id),
+        userTokenId: state.userTokenId === token.id ? null : state.userTokenId,
         tokenGenerationError: null,
         auditLog: [auditEntry("Token cancelled", token.id), ...state.auditLog],
         notifications: [
@@ -590,7 +595,7 @@ function reducer(state, action) {
         ? completedQueue
         : completedQueue.map((q, index) => index === nextWaiting ? { ...q, status: "serving" } : q);
       const completedToken = state.queue.find((q) => q.id === pending.tokenId);
-      const isUserToken = pending.tokenId === state.userTokenId;
+      const isUserToken = Boolean(completedToken?.ownerId || pending.tokenId === state.userTokenId);
       return {
         ...state,
         queue,
@@ -1001,6 +1006,8 @@ function LoginScreen({ onDone }) {
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [card, setCard] = useState("");
+  const beneficiaries = listDemoBeneficiaries();
+  const [matches, setMatches] = useState([]);
 
   return (
     <div className="rs-auth-screen">
@@ -1040,7 +1047,15 @@ function LoginScreen({ onDone }) {
               <input value={card} onChange={(e) => setCard(e.target.value)} placeholder="MP-45-1234-5678"
                 className="rs-auth-input" />
             </div>
-            <Btn full icon={IdCard} disabled={card.length < 4} onClick={onDone}>{t(dict.continue)}</Btn>
+            <Btn full icon={IdCard} disabled={card.length < 4} onClick={() => {
+              const found = findBeneficiary(card);
+              if (found) { setMatches([]); onDone(found); } else setMatches(beneficiaries.filter((item) => item.id.includes(card.toUpperCase()) || item.cardNo.includes(card)));
+            }}>{t(dict.continue)}</Btn>
+            {matches.length > 0 && <div className="rs-beneficiary-picker" aria-label="Demo beneficiary records">
+              <p>Select a demo beneficiary record</p>
+              {matches.map((item) => <button type="button" key={item.id} onClick={() => onDone(item)}><b>{item.id}</b><span>{item.name.en} · {item.cardNo}</span></button>)}
+            </div>}
+            <p style={{ fontSize: 11, color: C.grey, margin: "12px 0 0" }}>Demo records: BEN-001 to BEN-012. Enter a BEN ID or ration card number.</p>
           </div>
         )}
 
@@ -1170,7 +1185,8 @@ function AdminLoginScreen({ onLogin }) {
 
 function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
   const { t } = useT();
-  const userToken = state.queue.find((q) => q.id === state.userTokenId);
+  const { profile } = useBeneficiary();
+  const userToken = getActiveToken(state, profile?.id);
   const uIdx = state.queue.findIndex((q) => q.id === state.userTokenId);
   const ahead = uIdx === -1 ? 0 : state.queue.slice(0, uIdx).filter((q) => q.status === "waiting" || q.status === "serving").length;
   const serving = state.queue.find((q) => q.status === "serving");
@@ -1188,7 +1204,7 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
       <div className="rs-home-hero">
         <div>
           <span className="rs-eyebrow">SEPTEMBER 2026 · SERVICE OVERVIEW</span>
-          <h1>{t(dict.namaste)}, सीमा जी <span aria-hidden="true">👋</span></h1>
+          <h1>{t(dict.namaste)}, {profile?.name?.[lang] || "Seema Devi"} <span aria-hidden="true">👋</span></h1>
           <p>{t(dict.usp)}</p>
         </div>
         <div className="rs-hero-mark"><Wheat size={25} /></div>
@@ -1196,15 +1212,15 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
 
       <Card style={{ marginBottom: 12 }}>
         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.grey, letterSpacing: 0.3, margin: "0 0 8px" }}>{t(dict.myRationCard)}</p>
-        <p style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: 16, color: C.navy, margin: "0 0 10px" }}>MP-45-1234-5678</p>
+        <p style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: 16, color: C.navy, margin: "0 0 10px" }}>{profile?.cardNo}</p>
         <div style={{ display: "flex", gap: 18 }}>
           <div>
             <p style={{ fontSize: 10.5, color: C.grey, margin: 0 }}>{t(dict.familyMembers)}</p>
-            <p style={{ fontSize: 14, fontWeight: 700, color: C.navy, margin: "2px 0 0" }}>5</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: C.navy, margin: "2px 0 0" }}>{profile?.familyCount}</p>
           </div>
           <div>
             <p style={{ fontSize: 10.5, color: C.grey, margin: 0 }}>{t(dict.assignedFps)}</p>
-            <p style={{ fontSize: 14, fontWeight: 700, color: C.navy, margin: "2px 0 0" }}>FPS-102, Shanti Nagar</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: C.navy, margin: "2px 0 0" }}>{profile?.fps?.code}, {profile?.fps?.name}</p>
           </div>
         </div>
       </Card>
@@ -1238,7 +1254,7 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
                 variant="danger"
                 icon={AlertTriangle}
                 onClick={() => {
-                  if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN" });
+                  if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: profile?.id });
                 }}
               >
                 {t(dict.cancelToken)}
@@ -1286,13 +1302,14 @@ function HomeScreen({ state, dispatch, onNav, lang, setLang }) {
 }
 
 function EntitlementScreen({ onBack, onNav }) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const { profile } = useBeneficiary();
   const items = [
-    { icon: Wheat, name: { hi: "गेहूं", en: "Wheat" }, entitled: "5 kg", issued: "5 kg", remaining: "0 kg", stock: "available" },
-    { icon: Package, name: { hi: "चावल", en: "Rice" }, entitled: "5 kg", issued: "5 kg", remaining: "0 kg", stock: "available" },
-    { icon: Package, name: { hi: "चीनी", en: "Sugar" }, entitled: "1 kg", issued: "1 kg", remaining: "0 kg", stock: "limited" },
-    { icon: Package, name: { hi: "मिट्टी का तेल", en: "Kerosene" }, entitled: "2 L", issued: "0 L", remaining: "2 L", stock: "out" },
-  ];
+    { key: "wheat", icon: Wheat, name: { hi: "गेहूं", en: "Wheat" }, entitled: "5 kg", issued: "5 kg", remaining: "0 kg", stock: "available" },
+    { key: "rice", icon: Package, name: { hi: "चावल", en: "Rice" }, entitled: "5 kg", issued: "5 kg", remaining: "0 kg", stock: "available" },
+    { key: "sugar", icon: Package, name: { hi: "चीनी", en: "Sugar" }, entitled: "1 kg", issued: "1 kg", remaining: "0 kg", stock: "limited" },
+    { key: "kerosene", icon: Package, name: { hi: "मिट्टी का तेल", en: "Kerosene" }, entitled: "2 L", issued: "0 L", remaining: "2 L", stock: "out" },
+  ].map((item) => ({ ...item, entitled: profile?.entitlement?.[item.key] || item.entitled }));
   return (
     <div>
       <ScreenHeader title={t(dict.eCardTitle)} onBack={onBack} />
@@ -1302,11 +1319,11 @@ function EntitlementScreen({ onBack, onNav }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
             <div>
               <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 10.5, margin: "0 0 4px", letterSpacing: 0.4 }}>{t(dict.rationCardNumber)}</p>
-              <p style={{ color: C.white, fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: 16, margin: 0 }}>{CARD_INFO.cardNo}</p>
+              <p style={{ color: C.white, fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: 16, margin: 0 }}>{profile?.cardNo}</p>
             </div>
             <IdCard size={26} color={C.gold} />
           </div>
-          <p style={{ color: C.white, fontSize: 14, fontWeight: 600, margin: "0 0 10px" }}>{CARD_INFO.name}</p>
+          <p style={{ color: C.white, fontSize: 14, fontWeight: 600, margin: "0 0 10px" }}>{profile?.name?.[lang] || CARD_INFO.name}</p>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.cardCategory)}</p>
@@ -1314,7 +1331,7 @@ function EntitlementScreen({ onBack, onNav }) {
             </div>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.familyMembers)}</p>
-              <p style={{ color: C.white, fontSize: 12.5, fontWeight: 700, margin: "2px 0 0" }}>{CARD_INFO.familyCount}</p>
+              <p style={{ color: C.white, fontSize: 12.5, fontWeight: 700, margin: "2px 0 0" }}>{profile?.familyCount}</p>
             </div>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.ekycStatus)}</p>
@@ -1373,18 +1390,19 @@ function EntitlementScreen({ onBack, onNav }) {
 
 function FamilyScreen({ onBack }) {
   const { t } = useT();
+  const { profile } = useBeneficiary();
   return (
     <div>
       <ScreenHeader title={t(dict.familyTitle)} onBack={onBack} />
       <div style={{ padding: "8px 18px" }}>
-        {FAMILY_MEMBERS.map((m, i) => (
+        {(profile?.familyMembers || FAMILY_MEMBERS).map((m, i) => (
           <Card key={i} style={{ marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 38, height: 38, borderRadius: "50%", background: C.cream, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <User size={17} color={C.navy} />
               </div>
               <div>
-                <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14 }}>{m.name}</p>
+                <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14 }}>{typeof m.name === "string" ? m.name : m.name.en}</p>
                 <p style={{ margin: "2px 0 0", fontSize: 11.5, color: C.grey }}>{t(dict[m.relKey])} · {t(dict.age)} {m.age}</p>
               </div>
             </div>
@@ -1519,7 +1537,8 @@ function ComplaintsScreen({ state, dispatch, onBack, onNav }) {
 
 function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
   const { t } = useT();
-  const activeToken = getActiveToken(state);
+  const { profile } = useBeneficiary();
+  const activeToken = getActiveToken(state, profile?.id);
   const slots = ["9:00 AM", "9:20 AM", "9:40 AM", "10:00 AM", "10:20 AM", "10:30 AM"];
   const [selected, setSelected] = useState("10:30 AM");
 
@@ -1556,11 +1575,11 @@ function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
               Token <b style={{ color: C.navy }}>{activeToken.id}</b> is still {activeToken.status === "serving" ? "in service" : "active"}. Cancel it before generating another token.
             </p>
             <Btn full variant="danger" icon={AlertTriangle} onClick={() => {
-              if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID });
+              if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: profile?.id });
             }}>{t(dict.cancelToken)} {activeToken.id}</Btn>
           </Card>
         ) : (
-          <Btn full icon={CheckCircle2} onClick={() => { dispatch({ type: "BOOK_ONLINE" }); onBooked(); }}>
+          <Btn full icon={CheckCircle2} onClick={() => { dispatch({ type: "BOOK_ONLINE", beneficiaryId: profile?.id, beneficiaryName: profile?.name?.en }); onBooked(); }}>
             {t(dict.confirmToken)}
           </Btn>
         )}
@@ -1571,8 +1590,9 @@ function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
 
 function ScanScreen({ state, dispatch, onBack, onDone }) {
   const { t } = useT();
+  const { profile } = useBeneficiary();
   const [phase, setPhase] = useState("scan"); // scan -> verified -> details -> generated
-  const activeToken = getActiveToken(state);
+  const activeToken = getActiveToken(state, profile?.id);
 
   return (
     <div>
@@ -1619,11 +1639,11 @@ function ScanScreen({ state, dispatch, onBack, onDone }) {
                   Token <b style={{ color: C.navy }}>{activeToken.id}</b> must be cancelled before an offline QR token can be generated.
                 </p>
                 <Btn full variant="danger" icon={AlertTriangle} onClick={() => {
-                  if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID });
+                  if (window.confirm(t(dict.cancelTokenConfirm))) dispatch({ type: "CANCEL_TOKEN", beneficiaryId: profile?.id });
                 }}>{t(dict.cancelToken)} {activeToken.id}</Btn>
               </Card>
             ) : (
-              <Btn full icon={Ticket} onClick={() => { dispatch({ type: "GENERATE_QR_TOKEN", beneficiaryId: CURRENT_BENEFICIARY_ID }); setPhase("generated"); }}>
+              <Btn full icon={Ticket} onClick={() => { dispatch({ type: "GENERATE_QR_TOKEN", beneficiaryId: profile?.id, beneficiaryName: profile?.name?.en }); setPhase("generated"); }}>
                 {t(dict.generateToken)}
               </Btn>
             )}
@@ -1652,8 +1672,9 @@ function ScanScreen({ state, dispatch, onBack, onDone }) {
 
 function MyTokenScreen({ state, dispatch, onBack, onNav }) {
   const { t } = useT();
-  const userToken = state.queue.find((q) => q.id === state.userTokenId);
-  const uIdx = state.queue.findIndex((q) => q.id === state.userTokenId);
+  const { profile } = useBeneficiary();
+  const userToken = getActiveToken(state, profile?.id);
+  const uIdx = state.queue.findIndex((q) => q.id === userToken?.id);
   const ahead = uIdx === -1 ? 0 : state.queue.slice(0, uIdx).filter((q) => q.status === "waiting" || q.status === "serving").length;
   const serving = state.queue.find((q) => q.status === "serving");
 
@@ -1706,7 +1727,7 @@ function MyTokenScreen({ state, dispatch, onBack, onNav }) {
               icon={AlertTriangle}
               onClick={() => {
                 if (window.confirm(t(dict.cancelTokenConfirm))) {
-                  dispatch({ type: "CANCEL_TOKEN" });
+                  dispatch({ type: "CANCEL_TOKEN", beneficiaryId: profile?.id });
                   onNav("home");
                 }
               }}
@@ -1872,6 +1893,7 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
   const [screen, setScreen] = useState("splash");
   const [navTab, setNavTab] = useState("home");
   const [activeReceipt, setActiveReceipt] = useState(null);
+  const [profile, setProfile] = useState(findBeneficiary("BEN-001"));
 
   const goTab = (tab) => { setNavTab(tab); setScreen(tab); };
   const navFromHome = (dest) => {
@@ -1887,7 +1909,7 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
       content = <SplashScreen onStart={(selectedLang) => { if (selectedLang) setLang(selectedLang); setScreen("login"); }} />;
       break;
     case "login":
-      content = <LoginScreen onDone={() => { setScreen("home"); setNavTab("home"); }} />;
+      content = <LoginScreen onDone={(selectedProfile) => { setProfile(selectedProfile); setScreen("home"); setNavTab("home"); }} />;
       break;
     case "home":
       content = <HomeScreen state={state} dispatch={dispatch} onNav={navFromHome} lang={lang} setLang={setLang} />;
@@ -1941,9 +1963,11 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
 
   const sidebar = showNav ? <SideNav active={navTab} onNav={goTab} onLogout={() => setScreen("splash")} /> : null;
   return (
-    <AppShell state={state} active={screen} onNav={navFromHome} sidebar={sidebar} footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
-      {content}
-    </AppShell>
+    <BeneficiaryCtx.Provider value={{ profile, source: getBeneficiarySource() }}>
+      <AppShell state={state} active={screen} onNav={navFromHome} sidebar={sidebar} footer={showNav ? <BottomNav active={navTab} onNav={goTab} /> : null}>
+        {content}
+      </AppShell>
+    </BeneficiaryCtx.Provider>
   );
 }
 
@@ -2600,6 +2624,11 @@ export default function RationSetuApp() {
         .rs-auth-code { letter-spacing: .32em; text-align: center; font-size: 18px; }
         .rs-auth-steps { display: flex; gap: 6px; justify-content: center; margin-top: 22px; }
         .rs-auth-steps > div { width: 7px; height: 7px; border-radius: 50%; }
+        .rs-beneficiary-picker { display: grid; gap: 6px; margin-top: 12px; }
+        .rs-beneficiary-picker p { margin: 0 0 2px; color: ${C.grey}; font-size: 11px; font-weight: 700; }
+        .rs-beneficiary-picker button { display: flex; justify-content: space-between; gap: 10px; border: 1px solid ${C.greyLine}; border-radius: 8px; padding: 9px 10px; background: ${C.surfaceMuted}; color: ${C.navy}; cursor: pointer; text-align: left; }
+        .rs-beneficiary-picker button:hover, .rs-beneficiary-picker button:focus-visible { border-color: ${C.gold}; outline: 2px solid ${C.goldBg}; }
+        .rs-beneficiary-picker span { color: ${C.grey}; font-size: 10px; }
         .rs-wa-module { margin-top: 22px; border: 1px solid ${C.greyLine}; border-radius: 12px; background: ${C.white}; overflow: hidden; }
         .rs-wa-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px; border-bottom: 1px solid ${C.greyLine}; }
         .rs-wa-heading h2 { margin: 5px 0 4px; font-family: Poppins, sans-serif; color: ${C.navy}; font-size: 19px; }
