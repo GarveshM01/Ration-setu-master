@@ -41,8 +41,10 @@ function mapBeneficiary(row) {
     categoryKey: row.category_key,
     familyCount: row.family_count,
     familyMembers: parseJson(row.family_members_json, []),
-    fps: { code: row.fps_code, name: row.fps_name },
+    fps: { code: row.fps_code, name: row.fps_name, location: row.fps_location },
     entitlement: parseJson(row.entitlement_json, {}),
+    history: parseJson(row.history_json, []),
+    notifications: parseJson(row.notifications_json, []),
   };
 }
 

@@ -14,6 +14,12 @@ const DEMO_BENEFICIARIES = Array.from({ length: 12 }, (_, index) => {
     ["Meena Joshi", "मीना जोशी", 5],
     ["Dinesh Singh", "दिनेश सिंह", 4],
   ][index];
+  const fps = [
+    ["FPS-102", "Shanti Nagar", "Ward 12, Bhopal"],
+    ["FPS-103", "Sadar Bazaar", "Ward 4, Indore"],
+    ["FPS-104", "Nehru Nagar", "Ward 9, Gwalior"],
+    ["FPS-105", "Lake View", "Ward 16, Jabalpur"],
+  ][index % 4];
   return {
     id: `BEN-${number}`,
     cardNo: `MP-45-${String(1234 + index).padStart(4, "0")}-${String(5678 + index).padStart(4, "0")}`,
@@ -26,8 +32,16 @@ const DEMO_BENEFICIARIES = Array.from({ length: 12 }, (_, index) => {
       { name: index % 2 ? "Rakesh Kumar" : "Sunita Devi", relKey: "spouse", age: 29 + index, ekyc: "ekycVerified" },
       { name: "Aarav Sharma", relKey: "son", age: 12, ekyc: index % 3 ? "ekycVerified" : "ekycPending" },
     ].slice(0, names[2]),
-    fps: { code: `FPS-${102 + (index % 4)}`, name: ["Shanti Nagar", "Sadar Bazaar", "Nehru Nagar", "Lake View"][index % 4] },
+    fps: { code: fps[0], name: fps[1], location: fps[2] },
     entitlement: { wheat: "5 kg", rice: "5 kg", sugar: "1 kg", kerosene: "2 L" },
+    history: [
+      { month: "August 2026", token: `A${String(89 + index).padStart(3, "0")}`, status: "completed", date: `${14 - (index % 5)} August 2026`, shop: `${fps[0]} · ${fps[1]}`, txnId: `TXN-202608${14 - (index % 5)}-${89 + index}` },
+      { month: "July 2026", token: `A${String(52 + index).padStart(3, "0")}`, status: "completed", date: `${12 - (index % 4)} July 2026`, shop: `${fps[0]} · ${fps[1]}`, txnId: `TXN-202607${12 - (index % 4)}-${52 + index}` },
+    ],
+    notifications: [
+      { icon: "bell", title: { en: "Monthly entitlement available", hi: "मासिक हक़ उपलब्ध है" }, body: { en: `September 2026 entitlement is ready for ${fps[1]}.`, hi: `${fps[1]} के लिए सितंबर 2026 का हक़ उपलब्ध है।` } },
+      { icon: "info", title: { en: "Carry your ration card", hi: "अपना राशन कार्ड साथ लाएं" }, body: { en: `Visit ${fps[0]} during your assigned window.`, hi: `${fps[0]} पर निर्धारित समय में आएं।` } },
+    ],
   };
 });
 

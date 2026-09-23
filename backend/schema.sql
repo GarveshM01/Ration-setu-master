@@ -8,7 +8,10 @@ CREATE TABLE IF NOT EXISTS beneficiaries (
   family_members_json JSON NOT NULL,
   fps_code VARCHAR(20) NOT NULL,
   fps_name VARCHAR(120) NOT NULL,
+  fps_location VARCHAR(160) NOT NULL,
   entitlement_json JSON NOT NULL,
+  history_json JSON NOT NULL,
+  notifications_json JSON NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

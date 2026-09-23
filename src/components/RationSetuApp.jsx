@@ -877,6 +877,7 @@ function SideNav({ active, onNav, onLogout }) {
 
 function AppShell({ children, footer, sidebar, active, onNav, state }) {
   const { t } = useT();
+  const { profile } = useBeneficiary();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [readIds, setReadIds] = useState([]);
   const notificationItems = [
@@ -929,7 +930,7 @@ function AppShell({ children, footer, sidebar, active, onNav, state }) {
                   </>
                 )}
               </div>
-              <div className="rs-header-user"><span className="rs-avatar">S</span><span>Seema Devi</span></div>
+              <div className="rs-header-user"><span className="rs-avatar">{(profile?.name?.en || "Beneficiary").charAt(0)}</span><span>{profile?.name?.en || "Beneficiary"}</span></div>
             </div>
           </header>
         )}
@@ -1337,7 +1338,7 @@ function EntitlementScreen({ onBack, onNav }) {
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.cardCategory)}</p>
-              <p style={{ color: C.gold, fontSize: 12.5, fontWeight: 700, margin: "2px 0 0" }}>{t(dict[CARD_INFO.categoryKey])}</p>
+              <p style={{ color: C.gold, fontSize: 12.5, fontWeight: 700, margin: "2px 0 0" }}>{t(dict[profile?.categoryKey || CARD_INFO.categoryKey])}</p>
             </div>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.familyMembers)}</p>
@@ -1345,7 +1346,7 @@ function EntitlementScreen({ onBack, onNav }) {
             </div>
             <div>
               <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, margin: 0 }}>{t(dict.ekycStatus)}</p>
-              <div style={{ marginTop: 3 }}><EkycPill statusKey={CARD_INFO.ekyc} /></div>
+              <div style={{ marginTop: 3 }}><EkycPill statusKey={profile?.familyMembers?.[0]?.ekyc || CARD_INFO.ekyc} /></div>
             </div>
           </div>
         </div>
@@ -1354,7 +1355,7 @@ function EntitlementScreen({ onBack, onNav }) {
           <Btn full size="sm" variant="ghost" icon={Users} onClick={() => onNav("family")}>{t(dict.viewFamily)}</Btn>
         )}
 
-        <p style={{ fontSize: 12.5, color: C.grey, margin: "18px 0 4px" }}>September 2026 · {t(dict.familyMembers)}: {CARD_INFO.familyCount}</p>
+        <p style={{ fontSize: 12.5, color: C.grey, margin: "18px 0 4px" }}>September 2026 · {t(dict.familyMembers)}: {profile?.familyCount || CARD_INFO.familyCount}</p>
         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.grey, letterSpacing: 0.3, margin: "12px 0 10px" }}>{t(dict.entQty)}</p>
         <div style={{ background: C.goldBg, borderRadius: 12, padding: 11, display: "flex", gap: 8, marginBottom: 12 }}>
           <AlertTriangle size={15} color="#8A6410" style={{ flexShrink: 0 }} />
@@ -1558,7 +1559,7 @@ function BookTokenScreen({ state, dispatch, onBack, onBooked }) {
       <div style={{ padding: "8px 18px" }}>
         <Card style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14.5 }}>FPS-102 · Shanti Nagar</p>
+            <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 14.5 }}>{profile?.fps?.code} · {profile?.fps?.name}</p>
             <p style={{ margin: "3px 0 0", fontSize: 12, color: C.grey }}>{t(dict.nowServing)}: A120 · {t(dict.estWait)} 18 {t(dict.min)}</p>
           </div>
           <StatusPill status="serving" />
@@ -1628,7 +1629,7 @@ function ScanScreen({ state, dispatch, onBack, onDone }) {
               <CheckCircle2 size={19} /> {t(dict.fpsVerified)}
             </div>
             <Card style={{ marginBottom: 16 }}>
-              <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 15 }}>FPS-102 · Shanti Nagar</p>
+              <p style={{ margin: 0, fontWeight: 700, color: C.navy, fontSize: 15 }}>{profile?.fps?.code} · {profile?.fps?.name}</p>
               <p style={{ margin: "6px 0 0", fontSize: 12.5, color: C.grey }}>{t(dict.nowServing)}: A120 · {t(dict.estWait)} 18 {t(dict.min)}</p>
             </Card>
             <Btn full icon={UserCheck} onClick={() => setPhase("details")}>{t(dict.verifyDetails)}</Btn>
@@ -1722,7 +1723,7 @@ function MyTokenScreen({ state, dispatch, onBack, onNav }) {
           <Row label={t(dict.nowServing)} value={serving ? serving.id : "—"} />
           <Row label={t(dict.peopleAhead)} value={ahead} />
           <Row label={t(dict.estWait)} value={`${ahead * 6} ${t(dict.min)}`} />
-          <Row label={t(dict.assignedFps)} value="FPS-102" last />
+          <Row label={t(dict.assignedFps)} value={`${profile?.fps?.code} · ${profile?.fps?.name}`} last />
         </Card>
 
         <div style={{ display: "flex", gap: 10 }}>
@@ -1801,16 +1802,18 @@ function LiveQueueScreen({ state, lang }) {
 
 function NotifScreen({ state }) {
   const { t, lang } = useT();
+  const { profile } = useBeneficiary();
   const iconFor = (i) => (i === "check" ? CheckCircle2 : Bell);
   const whatsapp = state.whatsappMessages || [];
+  const notifications = profile?.notifications || state.notifications;
   return (
     <div>
       <ScreenHeader title={t(dict.notifTitle)} />
       <div style={{ padding: "8px 18px" }}>
-        {state.notifications.length === 0 && (
+        {notifications.length === 0 && (
           <p style={{ color: C.grey, fontSize: 13, textAlign: "center", marginTop: 30 }}>—</p>
         )}
-        {state.notifications.map((n, i) => {
+        {notifications.map((n, i) => {
           const Icon = iconFor(n.icon);
           return (
             <Card key={i} style={{ marginBottom: 10, display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -1846,6 +1849,11 @@ function NotifScreen({ state }) {
 
 function ProfileScreen({ state, onLogout, lang, setLang, onViewReceipt }) {
   const { t } = useT();
+  const { profile } = useBeneficiary();
+  const history = (profile?.history || state.history).map((item) => ({
+    ...item,
+    month: typeof item.month === "string" ? { en: item.month, hi: item.month } : item.month,
+  }));
   return (
     <div>
       <ScreenHeader title={t(dict.profileTitle)} />
@@ -1855,8 +1863,8 @@ function ProfileScreen({ state, onLogout, lang, setLang, onViewReceipt }) {
             <User size={22} color={C.navy} />
           </div>
           <div>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: C.navy }}>सीमा देवी · Seema Devi</p>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: C.grey }}>MP-45-1234-5678</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: C.navy }}>{profile?.name?.[lang] || "Seema Devi"}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: C.grey }}>{profile?.id} · {profile?.cardNo}</p>
           </div>
         </Card>
 
@@ -1871,9 +1879,9 @@ function ProfileScreen({ state, onLogout, lang, setLang, onViewReceipt }) {
         </Card>
 
         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.grey, letterSpacing: 0.3, margin: "0 0 10px" }}>{t(dict.historyTitle)}</p>
-        {state.history.length === 0 ? (
+        {history.length === 0 ? (
           <p style={{ color: C.grey, fontSize: 12.5 }}>{t(dict.noHistoryYet)}</p>
-        ) : state.history.map((h, i) => (
+        ) : history.map((h, i) => (
           <Card key={i} style={{ marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: h.txnId ? 10 : 0 }}>
               <div>

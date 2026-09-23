@@ -108,6 +108,10 @@ npm run api:seed
 npm run api
 ```
 
+For an existing database created before the richer profile fields were added,
+apply `backend/migrations/002_beneficiary_profile_detail.sql` before running
+the seed command. Fresh databases can use `backend/schema.sql` directly.
+
 Set `VITE_BENEFICIARY_API_URL=http://localhost:8787` in `.env.local` and
 restart Vite. The login then loads profiles from MySQL through the API. If
 this variable is absent, the frontend deliberately uses its credential-free
