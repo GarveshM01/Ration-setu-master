@@ -1173,7 +1173,7 @@ function AdminLoginScreen({ onLogin }) {
   };
 
   return (
-    <div className="rs-auth-screen">
+    <div className="rs-auth-screen rs-admin-auth-screen">
       <Card style={{ padding: 24, maxWidth: 440, width: "100%" }}>
         <div className="rs-auth-heading rs-auth-dealer-heading">
           <Logo size={52} />
@@ -3030,6 +3030,25 @@ export default function RationSetuApp() {
           .rs-ops-subnav, .rs-ops-content { padding-left: 16px; padding-right: 16px; }
         }
         @media (max-width: 480px) {
+          .rs-admin-auth-screen {
+            width: 100%;
+            min-height: calc(100vh - 104px);
+            align-items: start;
+            padding: 14px 10px 24px;
+            overflow-x: hidden;
+          }
+          .rs-admin-auth-screen > .rs-card {
+            width: 100%;
+            max-width: 440px;
+            min-width: 0;
+            padding: 18px 16px !important;
+          }
+          .rs-admin-auth-screen .rs-auth-input-row {
+            min-width: 0;
+          }
+          .rs-admin-auth-screen .rs-auth-input-row .rs-auth-input {
+            min-width: 0;
+          }
           .rs-global-header { margin-bottom: 10px; }
           .rs-global-brand p:first-child { font-size: 13px !important; }
           .rs-global-brand p:last-child { font-size: 9px !important; }
