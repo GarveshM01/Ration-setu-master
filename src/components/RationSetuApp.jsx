@@ -2484,7 +2484,9 @@ export default function RationSetuApp() {
       <style>{`
         ${FONT_IMPORT}
         * { box-sizing: border-box; }
-        body { margin: 0; }
+        html, body { margin: 0; min-width: 320px; overflow-x: hidden; }
+        img, svg, video { max-width: 100%; }
+        button, input, select, textarea { max-width: 100%; }
         input:focus { border-color: ${C.navy} !important; }
         textarea:focus { border-color: ${C.navy} !important; }
         ::-webkit-scrollbar { width: 6px; }
@@ -2741,6 +2743,44 @@ export default function RationSetuApp() {
           .rs-wa-contact-list button { min-width: 150px; }
           .rs-wa-composer { padding: 18px; }
           .rs-wa-compose-footer { align-items: flex-end; flex-direction: column; }
+          .rs-global-header { gap: 10px; }
+          .rs-global-utility { gap: 6px; min-width: 0; }
+          .rs-global-brand { min-width: 0; }
+          .rs-global-brand > div { min-width: 0; }
+          .rs-global-brand p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .rs-role-switch { flex-shrink: 0; }
+          .rs-auth-screen { padding: 24px 12px; }
+          .rs-auth-card { padding: 24px 20px; }
+          .rs-public-section-heading { align-items: flex-start; flex-direction: column; }
+          .rs-public-service-grid { gap: 8px; }
+          .rs-public-service-grid button { min-height: 138px; }
+          .rs-notification-popover { position: fixed; top: 74px; right: 12px; }
+          .rs-portal-header-actions, .rs-ops-header-actions { gap: 8px; }
+          .rs-ops-header { flex-wrap: wrap; }
+          .rs-ops-header-title { min-width: 0; }
+          .rs-ops-header-actions { margin-left: auto; }
+          .rs-ops-subnav { overflow-x: auto; white-space: nowrap; }
+          .rs-dashboard-content, .rs-ops-content { min-width: 0; }
+          .rs-table-scroll { max-width: 100%; }
+          .rs-table-scroll table { min-width: 520px; }
+          .rs-wa-heading { flex-wrap: wrap; }
+          .rs-wa-heading > div { min-width: 0; }
+          .rs-wa-heading p { line-height: 1.4; }
+          .rs-wa-contact-list button { min-height: 44px; }
+        }
+        @media (min-width: 641px) and (max-width: 1023px) {
+          .rs-page { padding: 14px 14px 24px; }
+          .rs-global-header { padding-left: 14px; padding-right: 14px; }
+          .rs-global-status { display: none; }
+          .rs-public-hero { gap: 28px; padding-left: 24px; padding-right: 24px; }
+          .rs-public-section, .rs-public-lower { padding-left: 24px; padding-right: 24px; }
+          .rs-public-service-grid { grid-template-columns: repeat(2, 1fr); }
+          .rs-shell.has-sidebar .rs-sidebar { width: 196px; flex-basis: 196px; }
+          .rs-shell.has-sidebar .rs-shell-scroll > div > div:first-child { padding-left: 24px !important; padding-right: 24px !important; }
+          .rs-wa-workspace { grid-template-columns: minmax(190px, .75fr) 1.25fr; }
+          .rs-wa-composer { padding: 18px; }
+          .rs-ops-sidebar { width: 204px; flex-basis: 204px; }
+          .rs-ops-header, .rs-ops-content { padding-left: 20px; padding-right: 20px; }
         }
         @media (min-width: 640px) {
           .rs-shell.has-sidebar .rs-shell-scroll > div { max-width: 100% !important; }
@@ -2943,6 +2983,18 @@ export default function RationSetuApp() {
           .rs-portal-header-title strong { font-size: 13px; }
           .rs-portal-header { min-height: 61px; }
           .rs-ops-subnav span:not(.rs-subnav-spacer):not(.rs-subnav-divider) { font-size: 9px; }
+          .rs-public-service-grid { grid-template-columns: 1fr; }
+          .rs-public-service-grid button { min-height: 102px; flex-direction: row; align-items: center; }
+          .rs-public-service-grid button > svg:last-child { margin-left: auto; }
+          .rs-public-hero h1 { font-size: clamp(28px, 9vw, 34px); }
+          .rs-public-hero-actions { align-items: stretch; flex-direction: column; gap: 12px; }
+          .rs-public-hero-actions > button { width: 100%; }
+          .rs-public-footer { gap: 8px; font-size: 9px; }
+          .rs-auth-card { border-radius: 10px; }
+          .rs-notification-popover { width: calc(100vw - 24px); }
+          .rs-wa-compose-footer button { width: 100%; justify-content: center; min-height: 42px; }
+          .rs-wa-contact-list button { min-width: 172px; }
+          .rs-header-icon, .rs-theme-toggle { min-height: 36px; }
         }
       `}</style>
       <div className={`rs-page ${theme === "dark" ? "rs-theme-dark" : ""}`} style={{ fontFamily: "Inter, 'Noto Sans Devanagari', sans-serif", minHeight: "100vh" }}>
