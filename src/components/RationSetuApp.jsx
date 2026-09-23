@@ -1011,6 +1011,8 @@ function LoginScreen({ onDone }) {
   const [matches, setMatches] = useState([]);
   const [lookupError, setLookupError] = useState("");
   const [lookingUp, setLookingUp] = useState(false);
+  const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const demoProfiles = beneficiaries.slice(0, 3);
 
   return (
     <div className="rs-auth-screen">
@@ -1018,6 +1020,14 @@ function LoginScreen({ onDone }) {
       <div className="rs-auth-card">
         <Logo size={38} />
         <div className="rs-auth-heading"><span>Citizen services</span><h2>{t(dict.welcome)}</h2><p>Sign in securely to manage your ration services.</p></div>
+        <button type="button" className="rs-demo-help-toggle" onClick={() => setShowDemoHelp((open) => !open)} aria-expanded={showDemoHelp}>View 3 demo beneficiary profiles</button>
+        {showDemoHelp && <div className="rs-demo-help-panel" role="region" aria-label="Demo beneficiary credentials">
+          <b>DEMO ONLY · no real authentication</b>
+          <small>Use any 6-digit OTP after entering one of these mobile numbers, then use the matching card or BEN ID.</small>
+          {demoProfiles.map((item) => <button type="button" key={item.id} onClick={() => { setMobile(item.mobile); setCard(item.cardNo); setStep(1); }}>
+            <strong>{item.name.en}</strong><span>{item.id} · +91 {item.mobile} · {item.cardNo}</span>
+          </button>)}
+        </div>}
 
         {step === 0 && (
           <div>
@@ -1065,7 +1075,7 @@ function LoginScreen({ onDone }) {
               <p>Select a demo beneficiary record</p>
               {matches.map((item) => <button type="button" key={item.id} onClick={() => onDone(item)}><b>{item.id}</b><span>{item.name.en} · {item.cardNo}</span></button>)}
             </div>}
-            <p style={{ fontSize: 11, color: C.grey, margin: "12px 0 0" }}>Demo records: BEN-001 to BEN-012. Enter a BEN ID or ration card number.</p>
+            <p style={{ fontSize: 11, color: C.grey, margin: "12px 0 0" }}>Demo records: 3 featured profiles shown above; the local/API seed remains available for BEN-001 onward.</p>
             {lookupError && <p role="alert" style={{ fontSize: 11.5, color: C.red, margin: "8px 0 0" }}>{lookupError}</p>}
           </div>
         )}
@@ -1085,9 +1095,14 @@ function DealerLoginScreen({ onLogin }) {
   const [dealerId, setDealerId] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const demoAccounts = [
+    { id: "FPS-102", pin: "1234", name: "Anita Sharma", shop: "Shanti Nagar FPS" },
+    { id: "FPS-205", pin: "2468", name: "Vikram Patel", shop: "Nehru Market FPS" },
+  ];
 
   const submit = () => {
-    if (dealerId.trim().toUpperCase() === "FPS-102" && pin === "1234") {
+    if (demoAccounts.some((account) => account.id === dealerId.trim().toUpperCase() && account.pin === pin)) {
       setError("");
       onLogin();
       return;
@@ -1103,6 +1118,13 @@ function DealerLoginScreen({ onLogin }) {
           <h2 style={{ fontFamily: "Poppins, sans-serif", color: C.navy, fontSize: 22, margin: "14px 0 5px" }}>{t(dict.dealerLogin)}</h2>
           <p style={{ color: C.grey, fontSize: 12.5, margin: 0 }}>{t(dict.officialPortal)}</p>
         </div>
+        <button type="button" className="rs-demo-help-toggle" onClick={() => setShowDemoHelp((open) => !open)} aria-expanded={showDemoHelp}>View 2 demo dealer accounts</button>
+        {showDemoHelp && <div className="rs-demo-help-panel" role="region" aria-label="Demo dealer credentials">
+          <b>DEMO ONLY · no real authentication</b>
+          {demoAccounts.map((account) => <button type="button" key={account.id} onClick={() => { setDealerId(account.id); setPin(account.pin); }}>
+            <strong>{account.name} · {account.shop}</strong><span>ID {account.id} · PIN {account.pin}</span>
+          </button>)}
+        </div>}
         <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.grey, marginBottom: 7 }}>{t(dict.dealerId)}</label>
         <input
           value={dealerId}
@@ -1121,7 +1143,7 @@ function DealerLoginScreen({ onLogin }) {
           autoComplete="current-password"
           className="rs-auth-input"
         />
-        <p style={{ color: C.grey, fontSize: 11.5, margin: "0 0 16px" }}>{t(dict.demoDealerHint)}</p>
+        <p style={{ color: C.grey, fontSize: 11.5, margin: "0 0 16px" }}>Demo only: use either account above. No real dealer authentication is performed.</p>
         {error && <p role="alert" style={{ color: C.red, fontSize: 12.5, margin: "0 0 12px" }}>{error}</p>}
         <Btn full icon={ShieldCheck} disabled={!dealerId.trim() || pin.length !== 4} onClick={submit}>{t(dict.dealerSignIn)}</Btn>
       </Card>
@@ -1134,10 +1156,15 @@ function AdminLoginScreen({ onLogin }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const demoAccounts = [
+    { id: "ADMIN-001", password: "Admin@123", name: "Meera Joshi", role: "District operations" },
+    { id: "ADMIN-002", password: "Admin@456", name: "Arvind Singh", role: "Supply oversight" },
+  ];
 
   const submit = (event) => {
     event.preventDefault();
-    if (adminId.trim().toUpperCase() === "ADMIN-001" && password === "Admin@123") {
+    if (demoAccounts.some((account) => account.id === adminId.trim().toUpperCase() && account.password === password)) {
       setError("");
       onLogin();
       return;
@@ -1153,6 +1180,13 @@ function AdminLoginScreen({ onLogin }) {
           <h2 style={{ fontFamily: "Poppins, sans-serif", color: C.navy, fontSize: 22, margin: "14px 0 5px" }}>Administrator sign in</h2>
           <p style={{ color: C.grey, fontSize: 12.5, margin: 0 }}>Secure access to portal analytics and operations</p>
         </div>
+        <button type="button" className="rs-demo-help-toggle" onClick={() => setShowDemoHelp((open) => !open)} aria-expanded={showDemoHelp}>View 2 demo administrator accounts</button>
+        {showDemoHelp && <div className="rs-demo-help-panel" role="region" aria-label="Demo administrator credentials">
+          <b>DEMO ONLY · no real authentication</b>
+          {demoAccounts.map((account) => <button type="button" key={account.id} onClick={() => { setAdminId(account.id); setPassword(account.password); }}>
+            <strong>{account.name} · {account.role}</strong><span>ID {account.id} · Password {account.password}</span>
+          </button>)}
+        </div>}
         <form onSubmit={submit}>
           <label htmlFor="admin-id" style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.grey, marginBottom: 7 }}>Admin ID</label>
           <input
@@ -1180,9 +1214,7 @@ function AdminLoginScreen({ onLogin }) {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
-          <div className="rs-demo-badge" style={{ display: "block", marginBottom: 14 }}>
-            DEMO ONLY · ID ADMIN-001 · Password Admin@123
-          </div>
+          <div className="rs-demo-badge" style={{ display: "block", marginBottom: 14 }}>DEMO ONLY · use the credentials in the help panel</div>
           {error && <p role="alert" style={{ color: C.red, fontSize: 12.5, margin: "0 0 12px" }}>{error}</p>}
           <Btn full icon={ShieldCheck} disabled={!adminId.trim() || !password} type="submit">Sign in to admin portal</Btn>
         </form>
@@ -2654,6 +2686,15 @@ export default function RationSetuApp() {
         .rs-wa-heading h2 { margin: 5px 0 4px; font-family: Poppins, sans-serif; color: ${C.navy}; font-size: 19px; }
         .rs-wa-heading p { margin: 0; color: ${C.grey}; font-size: 11.5px; }
         .rs-demo-badge { flex: 0 0 auto; color: #A94B0A; background: ${C.goldBg}; border: 1px solid #F3B58C; border-radius: 5px; padding: 5px 8px; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+        .rs-demo-help-toggle { width: 100%; margin: 0 0 12px; padding: 9px 10px; border: 1px solid ${C.greyLine}; border-radius: 7px; background: ${C.surfaceMuted}; color: ${C.indigo}; font-size: 11px; font-weight: 800; cursor: pointer; text-align: left; }
+        .rs-demo-help-toggle:hover, .rs-demo-help-toggle:focus-visible { background: ${C.goldBg}; }
+        .rs-demo-help-panel { display: grid; gap: 7px; margin: 0 0 14px; padding: 10px; border: 1px solid #F3B58C; border-radius: 8px; background: ${C.goldBg}; color: ${C.navy}; }
+        .rs-demo-help-panel > b { color: #A94B0A; font-size: 9px; letter-spacing: .06em; }
+        .rs-demo-help-panel > small { color: ${C.grey}; font-size: 10px; line-height: 1.4; }
+        .rs-demo-help-panel button { display: grid; gap: 3px; width: 100%; padding: 8px; border: 1px solid rgba(169,75,10,.18); border-radius: 6px; background: ${C.white}; color: ${C.navy}; text-align: left; cursor: pointer; }
+        .rs-demo-help-panel button:hover, .rs-demo-help-panel button:focus-visible { border-color: ${C.gold}; }
+        .rs-demo-help-panel button strong { font-size: 10.5px; }
+        .rs-demo-help-panel button span { color: ${C.grey}; font-size: 9.5px; overflow-wrap: anywhere; }
         .rs-wa-workspace { display: grid; grid-template-columns: minmax(220px, .85fr) 1.15fr; gap: 0; }
         .rs-wa-contacts { border-right: 1px solid ${C.greyLine}; }
         .rs-wa-composer { padding: 20px 22px; }
@@ -2933,6 +2974,8 @@ export default function RationSetuApp() {
         .rs-theme-dark .rs-ops-header,
         .rs-theme-dark .rs-dashboard-content .rs-card { background: ${C.white} !important; }
         .rs-theme-dark .rs-wa-activity th { background: ${C.surfaceMuted} !important; }
+        .rs-theme-dark .rs-demo-help-toggle { background: ${C.surfaceMuted}; color: ${C.indigo}; }
+        .rs-theme-dark .rs-demo-help-panel button { background: ${C.white}; color: ${C.navy}; }
         .rs-theme-dark .rs-sidebar-kicker,
         .rs-theme-dark .rs-sidebar-label,
         .rs-theme-dark .rs-sidebar-item { color: ${C.grey} !important; }
