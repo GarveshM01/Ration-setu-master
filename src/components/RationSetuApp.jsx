@@ -2024,9 +2024,15 @@ function BeneficiaryApp({ state, dispatch, lang, setLang }) {
 /* =========================================================================
    DEALER DASHBOARD
    ========================================================================= */
-function DealerPortalFrame({ children, onLogout }) {
+function OperationsPortalFrame({ children, onLogout, portal = "dealer" }) {
   const { t } = useT();
-  const links = [
+  const isAdmin = portal === "admin";
+  const links = isAdmin ? [
+    { label: "Operations overview", icon: LayoutDashboard, active: true },
+    { label: "Stock & allocation", icon: Package },
+    { label: "Distribution analytics", icon: BarChart3 },
+    { label: "Communications", icon: Bell },
+  ] : [
     { label: "Operations overview", icon: LayoutDashboard, active: true },
     { label: "Queue management", icon: Users },
     { label: "Stock & allocation", icon: Package },
@@ -2035,10 +2041,10 @@ function DealerPortalFrame({ children, onLogout }) {
   return (
     <div className="rs-ops-shell">
       <aside className="rs-ops-sidebar">
-        <div className="rs-ops-brand"><Logo size={38} /><span>DEALER CONSOLE</span></div>
-        <div className="rs-ops-location"><span className="rs-status-dot" /> FPS-102 <small>Shanti Nagar</small></div>
-        <nav className="rs-ops-nav" aria-label="Dealer navigation">
-          <p>Operations</p>
+        <div className="rs-ops-brand"><Logo size={38} /><span>{isAdmin ? "ADMIN CONSOLE" : "DEALER CONSOLE"}</span></div>
+        <div className="rs-ops-location"><span className="rs-status-dot" /> {isAdmin ? "STATE PDS CONTROL" : "FPS-102"} <small>{isAdmin ? "District operations" : "Shanti Nagar"}</small></div>
+        <nav className="rs-ops-nav" aria-label={`${isAdmin ? "Admin" : "Dealer"} navigation`}>
+          <p>{isAdmin ? "Control centre" : "Operations"}</p>
           {links.map(({ label, icon: Icon, active }) => (
             <button key={label} className={active ? "is-active" : ""} type="button">
               <Icon size={17} /> <span>{label}</span>
@@ -2054,18 +2060,18 @@ function DealerPortalFrame({ children, onLogout }) {
         <header className="rs-ops-header">
           <div>
             <span className="rs-portal-breadcrumb">PUBLIC DISTRIBUTION SYSTEM / DEALER</span>
-            <h1>Operations overview</h1>
+            <h1>{isAdmin ? "Admin operations overview" : "Operations overview"}</h1>
           </div>
           <div className="rs-ops-header-actions">
-            <span className="rs-service-status"><span className="rs-status-dot" /> Live system</span>
+            <span className="rs-service-status"><span className="rs-status-dot" /> {isAdmin ? "Demo system" : "Live system"}</span>
             <button className="rs-header-icon" type="button" aria-label="Notifications"><Bell size={17} /></button>
             <div className="rs-header-user"><span className="rs-avatar">D</span><span>FPS Operator</span></div>
           </div>
         </header>
         <div className="rs-ops-subnav">
-          <span>Today · 15 September 2026</span>
+          <span>{isAdmin ? "Control centre · 15 September 2026" : "Today · 15 September 2026"}</span>
           <span className="rs-subnav-divider" />
-          <span>Distribution window 09:00–17:00</span>
+          <span>{isAdmin ? "All district locations" : "Distribution window 09:00–17:00"}</span>
           <span className="rs-subnav-spacer" />
           <button type="button"><RefreshCw size={13} /> Sync data</button>
         </div>
@@ -2073,6 +2079,10 @@ function DealerPortalFrame({ children, onLogout }) {
       </main>
     </div>
   );
+}
+
+function DealerPortalFrame({ children, onLogout }) {
+  return <OperationsPortalFrame onLogout={onLogout} portal="dealer">{children}</OperationsPortalFrame>;
 }
 
 function DealerDashboard({ state, dispatch, lang, onLogout }) {
@@ -2370,7 +2380,8 @@ function AdminDashboard({ state, dispatch, onLogout }) {
   const { t } = useT();
   const noShows = state.queue.filter((q) => q.status === "noshow").length;
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
+    <OperationsPortalFrame onLogout={onLogout} portal="admin">
+    <div className="rs-dashboard-content" style={{ maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <Logo size={34} />
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -2405,6 +2416,7 @@ function AdminDashboard({ state, dispatch, onLogout }) {
       <AdminStockAllocation />
       <WhatsAppMockService state={state} dispatch={dispatch} />
     </div>
+    </OperationsPortalFrame>
   );
 }
 
