@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="490" viewBox="0 0 980 766" role="img" aria-label="neofetch style profile card">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace; font-size: 23px; }
+    
+@keyframes reveal {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.row { opacity: 0; animation: reveal .45s ease forwards; }
+
+  </style>
+  <rect x="0" y="0" width="980" height="766" rx="18" fill="#0d1117"/>
+  <rect x="0" y="0" width="980" height="74" rx="18" fill="#161b22"/>
+  <circle cx="36" cy="37" r="8" fill="#ff5f56"/>
+  <circle cx="62" cy="37" r="8" fill="#ffbd2e"/>
+  <circle cx="88" cy="37" r="8" fill="#27c93f"/>
+  <text x="130" y="45" fill="#8b949e">garve@github</text>
+  <text x="48" y="128" class="row" fill="#7ee787" style="animation-delay:0.00s">Now:</text><text x="220" y="128" class="row" fill="#c9d1d9" style="animation-delay:0.00s">B.Tech CSE student | learning web dev | doing DSA</text><text x="48" y="162" class="row" fill="#7ee787" style="animation-delay:0.09s"></text><text x="220" y="162" class="row" fill="#c9d1d9" style="animation-delay:0.09s">alongside frontend | open to internships</text><text x="48" y="202" class="row" fill="#7ee787" style="animation-delay:0.18s">Edu:</text><text x="220" y="202" class="row" fill="#c9d1d9" style="animation-delay:0.18s">3rd year B.Tech CSE at OIST Bhopal; Web Development and</text><text x="48" y="236" class="row" fill="#7ee787" style="animation-delay:0.27s"></text><text x="220" y="236" class="row" fill="#c9d1d9" style="animation-delay:0.27s">Java DSA courses at Coding Thinker, Bhopal; core: OS,</text><text x="48" y="270" class="row" fill="#7ee787" style="animation-delay:0.36s"></text><text x="220" y="270" class="row" fill="#c9d1d9" style="animation-delay:0.36s">SE, DBMS, TOC, IWT</text><text x="48" y="310" class="row" fill="#7ee787" style="animation-delay:0.45s">Stack:</text><text x="220" y="310" class="row" fill="#c9d1d9" style="animation-delay:0.45s">HTML, CSS, JavaScript, Java, C++, SQL, Supabase</text><text x="48" y="350" class="row" fill="#7ee787" style="animation-delay:0.54s">Learning:</text><text x="220" y="350" class="row" fill="#c9d1d9" style="animation-delay:0.54s">MERN (MongoDB, Express, React, Node.js), DSA in Java</text><text x="48" y="390" class="row" fill="#7ee787" style="animation-delay:0.63s">Highlights:</text><text x="220" y="390" class="row" fill="#c9d1d9" style="animation-delay:0.63s">200+ CodeChef problems solved; built Ration Setu for</text><text x="48" y="424" class="row" fill="#7ee787" style="animation-delay:0.72s"></text><text x="220" y="424" class="row" fill="#c9d1d9" style="animation-delay:0.72s">SIH (selected to represent college); participant at TIT</text><text x="48" y="458" class="row" fill="#7ee787" style="animation-delay:0.81s"></text><text x="220" y="458" class="row" fill="#c9d1d9" style="animation-delay:0.81s">Srijan; organized 3 college events: debate competition,</text><text x="48" y="492" class="row" fill="#7ee787" style="animation-delay:0.90s"></text><text x="220" y="492" class="row" fill="#c9d1d9" style="animation-delay:0.90s">coding competition, mock placement drive</text>
+</svg>
